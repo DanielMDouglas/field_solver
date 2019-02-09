@@ -14,7 +14,7 @@ const int nPointsY = yL/ds;
 
 // number of iterations
 // with ds = 2, 15000 seems to be a good number
-int nIter = 5000;
+int nIter = 10000;
 
 // constant by which each timestep is multiplied
 // should be 1./4 if dx == dy
@@ -71,6 +71,8 @@ field V (x_axis, y_axis, Vmax/2);
 field tempGrid (x_axis, y_axis, 0.);
 
 double linear(double x, double y) {
+  // the analytic solution
+  // used to initialize the analytic field
   return y*Vmax/yL;
 }
 
@@ -101,6 +103,19 @@ int main() {
 	}
       }
     }
+
+    if ( iter % 100 == 0 ) {
+      // print out the squared_diff between current iteration
+      // and the analytic solution
+      std::cout << iter << '\t'
+		<< squared_diff(V, analytic_solution, is_in_boundary) << '\t'
+		<< squared_diff(V, tempGrid, is_in_boundary) << '\t'
+		<< std::endl;
+      if ( squared_diff(V, tempGrid, is_in_boundary) < 1.e-7 ) {
+	break;
+      }
+    }
+      
     // set V to the tempGrid
     for ( int i = 0; i < nPointsX+1; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
@@ -111,6 +126,8 @@ int main() {
       }
     }
   }
+
+  std::cout << "final stepwise difference: " << squared_diff(V, tempGrid, is_in_boundary) << std::endl;
   
   V.print_to_file("convergence.dat");
   analytic_solution.print_to_file("analytic.dat");

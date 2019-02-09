@@ -1,6 +1,3 @@
-/* #include <vector> */
-/* #include <string> */
-
 class field {
  public:
   int xSize, ySize;
@@ -15,3 +12,6 @@ class field {
   double get(int, int);
   void print_to_file(std::string);
 };
+
+double squared_diff(field, field);
+double squared_diff(field, field, bool (*)(int, int));
