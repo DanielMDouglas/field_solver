@@ -6,58 +6,81 @@
 
 #include "field.h"
 
-field::field(std::vector<double> x, std::vector<double> y, double init_val = 0) {
+field::field(std::vector <double> x,
+	     std::vector <double> y,
+	     std::vector <double> z,
+	     double init_val = 0)
+{
   xSize = x.size();
   ySize = y.size();
-
+  zSize = z.size();
+  
   x_space = x;
   y_space = y;
+  z_space = z;
 
-  values = std::vector< double > (xSize*ySize, init_val);
+  values = std::vector< double > (xSize*ySize*zSize, init_val);
 }
 
-field::field(std::vector<double> x, std::vector<double> y, double (*f)(double, double)) {
+field::field(std::vector <double> x,
+	     std::vector <double> y,
+	     std::vector <double> z,
+	     double (*f)(double, double, double))
+{
   xSize = x.size();
   ySize = y.size();
+  zSize = z.size();
 
   x_space = x;
   y_space = y;
+  z_space = z;
 
-  values = std::vector< double > (xSize*ySize);
+  values = std::vector< double > (xSize*ySize*zSize);
 
   for ( int i = 0; i < xSize; i++ ) {
     for ( int j = 0; j < ySize; j++ ) {
-      set(i, j, (*f)(x[i], y[j]));
+      for ( int k = 0; k < zSize; k++ ) {
+	set(i, j, k, (*f)(x[i], y[j], z[k]));
+      }
     }
   }
 }
 
-void field::set(int i, int j, double value) {
-  values[ySize*i + j] = value;
+void field::set(int i, int j, int k, double value)
+{
+  values[ySize*zSize*i + zSize*j + k] = value;
 }
 
-double field::get(int i, int j) {
-  return values[ySize*i + j];
+double field::get(int i, int j, int k)
+{
+  return values[ySize*zSize*i + zSize*j + k];
 }
 
-void field::print_to_file(std::string filename) {
+void field::print_to_file(std::string filename)
+{
   std::ofstream outFile (filename.c_str());
   for ( int i = 0; i < xSize; i++ ) {
     for ( int j = 0; j < ySize; j++ ) {
-      outFile << x_space[i] << ','
-	      << y_space[j] << ','
-	      << get(i, j) << '\n';
+      for ( int k = 0; k < zSize; k++ ) {
+	outFile << x_space[i] << ','
+		<< y_space[j] << ','
+		<< z_space[k] << ','
+		<< get(i, j, k) << '\n';
+      }
     }
   }
   outFile.close();
 }
 
-double squared_diff(field a, field b) {
+double squared_diff(field a, field b)
+{
   // return the squared differences of each field
 
   // first, check that they have the same shape
   try {
-    if ( ( not a.xSize == b.xSize ) or ( not a.ySize == b.ySize ) ) {
+    if ( ( not a.xSize == b.xSize )
+	 or ( not a.ySize == b.ySize )
+	 or ( not a.zSize == b.zSize )) {
       throw 20;
     }
     else {
@@ -65,8 +88,10 @@ double squared_diff(field a, field b) {
       int n_points = 0;
       for ( int i = 0; i < a.xSize; i++ ) {
 	for ( int j = 0; j < a.ySize; j++ ) {
-	  sum += pow(a.get(i,j) - b.get(i,j), 2);
-	  n_points++;
+	  for ( int k = 0; k < a.zSize; k++ ) {
+	    sum += pow(a.get(i, j, k) - b.get(i, j, k), 2);
+	    n_points++;
+	  }
 	}
       }
       return sum/n_points;
@@ -78,12 +103,15 @@ double squared_diff(field a, field b) {
   return 0;
 }
 
-double squared_diff(field a, field b, bool (*exclude)(int, int)) {
+double squared_diff(field a, field b, bool (*exclude)(int, int, int))
+{
   // return the squared differences of each field
 
   // first, check that they have the same shape
   try {
-    if ( ( not a.xSize == b.xSize ) or ( not a.ySize == b.ySize ) ) {
+    if ( ( not a.xSize == b.xSize )
+	 or ( not a.ySize == b.ySize )
+	 or ( not a.zSize == b.zSize )) {
       throw 20;
     }
     else {
@@ -91,9 +119,11 @@ double squared_diff(field a, field b, bool (*exclude)(int, int)) {
       int n_points = 0;
       for ( int i = 0; i < a.xSize; i++ ) {
 	for ( int j = 0; j < a.ySize; j++ ) {
-	  if ( not exclude(i, j) ) {
-	    sum += pow(a.get(i,j) - b.get(i,j), 2);
-	    n_points++;
+	  for ( int k = 0; k < a.zSize; k++ ) {
+	    if ( not exclude(i, j, k) ) {
+	      sum += pow(a.get(i, j, k) - b.get(i, j, k), 2);
+	      n_points++;
+	    }
 	  }
 	}
       }
