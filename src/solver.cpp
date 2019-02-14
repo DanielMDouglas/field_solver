@@ -168,11 +168,12 @@ void solve_field() {
   V.print_to_file("convergence.dat");
   analytic_solution.print_to_file("analytic.dat");
 }
-
   
 int main() {
   // solve_field();
-  geometry();
+  // geometry();
+  boundary foo("/home/dan/studies/detector.gdml");
+  std::cout << foo.is_in_boundary(0, 0, 0) << std::endl;
   
   return 0;
 }
