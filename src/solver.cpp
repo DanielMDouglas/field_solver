@@ -4,7 +4,7 @@
 
 #include "solver.h"
 #include "field.h"
-#include "geometry.h"
+// #include "geometry.h"
 
 double xL = 50;
 double yL = 50;
@@ -171,9 +171,12 @@ void solve_field() {
   
 int main() {
   // solve_field();
-  // geometry();
-  boundary foo("/home/dan/studies/detector.gdml");
-  std::cout << foo.is_in_boundary(0, 0, 0) << std::endl;
+
+  boundary detector("/home/dan/studies/detector.gdml");
+  field detector_bounds(detector, 100, 100, 100);
+  detector_bounds.print_to_file("foo.dat");
+
+  // detector.volumes[0] -> transform();
   
   return 0;
 }

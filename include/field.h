@@ -1,3 +1,5 @@
+#include "geometry.h"
+
 class field
 {
  public:
@@ -16,6 +18,7 @@ class field
 	std::vector <double>,
 	std::vector <double>,
 	double (*)(double, double, double));
+  field(boundary, int, int, int); 
   void set(int, int, int, double);
   double get(int, int, int);
   void print_to_file(std::string);

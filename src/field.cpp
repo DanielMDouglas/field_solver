@@ -4,7 +4,11 @@
 #include <fstream>
 #include <cmath>
 
+#include <G4VisExtent.hh>
+
 #include "field.h"
+// #include "geometry.h"
+#include "solver.h"
 
 field::field(std::vector <double> x,
 	     std::vector <double> y,
@@ -41,6 +45,37 @@ field::field(std::vector <double> x,
     for ( int j = 0; j < ySize; j++ ) {
       for ( int k = 0; k < zSize; k++ ) {
 	set(i, j, k, (*f)(x[i], y[j], z[k]));
+      }
+    }
+  }
+}
+
+field::field(boundary bound, int Nx, int Ny, int Nz)
+{
+  xSize = Nx;
+  ySize = Ny;
+  zSize = Nz;
+
+  G4VisExtent extent = bound.extent();
+  std::cout << extent << std::endl;
+  
+  x_space = linspace(extent.GetXmin(), extent.GetXmax(), Nx);
+  y_space = linspace(extent.GetYmin(), extent.GetYmax(), Ny);
+  z_space = linspace(extent.GetZmin(), extent.GetZmax(), Nz);
+
+  values = std::vector< double > (xSize*ySize*zSize);
+
+  for ( int i = 0; i < xSize; i++ ) {
+    for ( int j = 0; j < ySize; j++ ) {
+      for ( int k = 0; k < zSize; k++ ) {
+	if ( bound.is_in_boundary(x_space[i],
+				  y_space[j],
+				  z_space[k]) ) {
+	  set(i, j, k, 1);
+	}
+	else {
+	  set(i, j, k, 0);
+	}
       }
     }
   }
