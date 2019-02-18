@@ -7,7 +7,6 @@
 #include <G4VisExtent.hh>
 
 #include "field.h"
-// #include "geometry.h"
 #include "solver.h"
 
 field::field(std::vector <double> x,

@@ -4,7 +4,6 @@
 
 #include "solver.h"
 #include "field.h"
-// #include "geometry.h"
 
 double xL = 50;
 double yL = 50;
