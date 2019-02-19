@@ -8,7 +8,9 @@ boundary::boundary(std::string filename)
   parser.Read(filename);
 
   for ( uint i = 0; i < volNames.size(); i++ ) {
-    volumes[i] = new volume(parser.GetVolume(volNames[i]), potentials[i]);
+    volumes[i] = new volume(parser.GetVolume(volNames[i]),
+			    potentials[i],
+			    centers[i]);
   }
 }
 
