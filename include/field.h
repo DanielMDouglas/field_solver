@@ -1,7 +1,9 @@
+#ifndef FIELD_H
+#define FIELD_H
+
 #include <functional>
 
 #include "boundary.h"
-#include "utils.h"
 
 class field
 {
@@ -29,3 +31,5 @@ class field
 
 double squared_diff(field, field);
 double squared_diff(field, field, field);
+
+#endif

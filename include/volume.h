@@ -1,3 +1,6 @@
+#ifndef VOLUME_H
+#define VOLUME_H
+
 #include <functional>
 
 #include <G4LogicalVolume.hh>
@@ -16,3 +19,5 @@ class volume
   double get_voltage(double, double, double);
   bool is_in_boundary(double, double, double);
 };
+
+#endif

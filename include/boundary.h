@@ -1,3 +1,6 @@
+#ifndef BOUNDARY_H
+#define BOUNDARY_H
+
 #include <vector>
 #include <string>
 
@@ -16,3 +19,5 @@ class boundary
   bool is_in_boundary(double, double, double);
   double boundary_value(double, double, double);
 };
+
+#endif

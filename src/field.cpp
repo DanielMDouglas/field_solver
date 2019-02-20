@@ -108,10 +108,6 @@ void field::print_to_file(std::string filename)
 		<< y_space[j] << ','
 		<< z_space[k] << ','
 		<< get(i, j, k) << '\n';
-	// std::cout << x_space[i] << ','
-	// 	  << y_space[j] << ','
-	// 	  << z_space[k] << ','
-	// 	  << get(i, j, k) << std::endl;;
       }
     }
   }
