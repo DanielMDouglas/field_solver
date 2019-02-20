@@ -6,8 +6,10 @@ class volume
  public:
   double V;
   G4LogicalVolume * log_vol;
-
-  volume(G4LogicalVolume*, double);
+  double Xmin, Xmax;
+  double Ymin, Ymax;
+  double Zmin, Zmax;
+ 
+  volume(double, double, double, double, double, double, double);
   bool is_in_boundary(double, double, double);
-  G4VisExtent extent();
 };

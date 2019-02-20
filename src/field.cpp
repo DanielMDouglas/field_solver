@@ -4,8 +4,6 @@
 #include <fstream>
 #include <cmath>
 
-#include <G4VisExtent.hh>
-
 #include "field.h"
 #include "solver.h"
 
@@ -55,12 +53,9 @@ field::field(boundary bound, int Nx, int Ny, int Nz)
   ySize = Ny;
   zSize = Nz;
 
-  G4VisExtent extent = bound.extent();
-  std::cout << extent << std::endl;
-  
-  x_space = linspace(extent.GetXmin(), extent.GetXmax(), Nx);
-  y_space = linspace(extent.GetYmin(), extent.GetYmax(), Ny);
-  z_space = linspace(extent.GetZmin(), extent.GetZmax(), Nz);
+  x_space = linspace(bound.Xmin, bound.Xmax, Nx);
+  y_space = linspace(bound.Ymin, bound.Ymax, Ny);
+  z_space = linspace(bound.Zmin, bound.Zmax, Nz);
 
   values = std::vector< double > (xSize*ySize*zSize);
 
@@ -100,6 +95,10 @@ void field::print_to_file(std::string filename)
 		<< y_space[j] << ','
 		<< z_space[k] << ','
 		<< get(i, j, k) << '\n';
+	// std::cout << x_space[i] << ','
+	// 	  << y_space[j] << ','
+	// 	  << z_space[k] << ','
+	// 	  << get(i, j, k) << std::endl;;
       }
     }
   }

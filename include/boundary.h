@@ -1,22 +1,17 @@
 #include <vector>
 #include <string>
 
-#include <G4VisExtent.hh>
-
 #include <volume.h>
 
 class boundary
 {
  public:
-  std::vector <std::string> volNames = {"volFieldShell",
-					"volCathode",
-					"volLeftPixelPlane",
-					"volRightPixelPlane"};
-  std::vector <double> potentials = {0., 0., 0., 0.};
-  volume * volumes [4];
+  volume * volumes[6];
+  double Xmin, Xmax = 0;
+  double Ymin, Ymax = 0;
+  double Zmin, Zmax = 0;
   
-  boundary(std::string);
+  boundary();
   bool is_in_boundary(double, double, double);
   double boundary_value(double, double, double);
-  G4VisExtent extent();
 };

@@ -171,11 +171,11 @@ void solve_field() {
 int main() {
   // solve_field();
 
-  boundary detector("/home/dan/studies/detector.gdml");
+  boundary detector;
+
+  // std::cout << detector.volumes[0] -> is_in_boundary(-1., 110., 1.) << std::endl;
   field detector_bounds(detector, 100, 100, 100);
   detector_bounds.print_to_file("foo.dat");
-
-  // detector.volumes[0] -> transform();
   
   return 0;
 }

@@ -2,53 +2,49 @@
 
 #include <boundary.h>
 
-boundary::boundary(std::string filename)
+boundary::boundary()
 {
-  G4GDMLParser parser;
-  parser.Read(filename);
+  volumes[0] = new volume(0., 100., 0., 100., 0., 2., 0.);
+  volumes[1] = new volume(0., 100., 0., 100., 98., 100., 0.);
+  volumes[2] = new volume(0., 2., 0., 100., 0., 100., 0.);
+  volumes[3] = new volume(98., 100., 0., 100., 0., 100., 0.);
+  volumes[4] = new volume(0., 100., 0., 2., 0., 100., 0.);
+  volumes[5] = new volume(0., 100., 98., 100., 0., 100., 0.);
 
-  for ( uint i = 0; i < volNames.size(); i++ ) {
-    volumes[i] = new volume(parser.GetVolume(volNames[i]), potentials[i]);
+  for ( uint i = 0; i < 6; i++ ) {
+    if ( volumes[i] -> Xmin < Xmin ) {
+      Xmin = volumes[i] -> Xmin;
+    }
+    if ( volumes[i] -> Xmax > Xmax ) {
+      Xmax = volumes[i] -> Xmax;
+    }
+    if ( volumes[i] -> Ymin < Ymin ) {
+      Ymin = volumes[i] -> Ymin;
+    }
+    if ( volumes[i] -> Ymax > Ymax ) {
+      Ymax = volumes[i] -> Ymax;
+    }
+    if ( volumes[i] -> Zmin < Zmin ) {
+      Zmin = volumes[i] -> Zmin;
+    }
+    if ( volumes[i] -> Zmax > Zmax ) {
+      Zmax = volumes[i] -> Zmax;
+    }
   }
+
+  std::cout << Xmin << '\t' << Xmax << '\n'
+	    << Ymin << '\t' << Ymax << '\n'
+	    << Zmin << '\t' << Zmax << '\n'
+	    << std::endl;
 }
 
 bool boundary::is_in_boundary(double x, double y, double z)
 {
   bool is_in_any = false;
-  for ( uint i = 0; i < volNames.size(); i++ ) {
+  for ( uint i = 0; i < 6; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
       is_in_any = true;
     }
   }
   return is_in_any;
-}
-
-G4VisExtent boundary::extent()
-{
-  G4VisExtent extent;
-  std::cout << extent.GetXmin() << std::endl;
-
-  for ( uint i = 0; i < volNames.size(); i++ ) {
-    G4VisExtent this_extent = volumes[i] -> extent();
-    
-    if ( this_extent.GetXmin() < extent.GetXmin() ) {
-      extent.SetXmin(this_extent.GetXmin());
-    }
-    if ( this_extent.GetXmax() > extent.GetXmax() ) {
-      extent.SetXmax(this_extent.GetXmax());
-    }
-    if ( this_extent.GetYmin() < extent.GetYmin() ) {
-      extent.SetYmin(this_extent.GetYmin());
-    }
-    if ( this_extent.GetYmax() > extent.GetYmax() ) {
-      extent.SetYmax(this_extent.GetYmax());
-    }
-    if ( this_extent.GetZmin() < extent.GetZmin() ) {
-      extent.SetZmin(this_extent.GetZmin());
-    }
-    if ( this_extent.GetZmax() > extent.GetZmax() ) {
-      extent.SetZmax(this_extent.GetZmax());
-    }
-  }
-  return extent;
 }
