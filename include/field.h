@@ -1,4 +1,7 @@
+#include <functional>
+
 #include "boundary.h"
+#include "utils.h"
 
 class field
 {
@@ -17,12 +20,12 @@ class field
   field(std::vector <double>,
 	std::vector <double>,
 	std::vector <double>,
-	double (*)(double, double, double));
-  field(boundary, int, int, int); 
+	std::function<double (double, double, double)>);
+  field(boundary, int, int, int, std::string); 
   void set(int, int, int, double);
   double get(int, int, int);
   void print_to_file(std::string);
 };
 
 double squared_diff(field, field);
-double squared_diff(field, field, bool (*)(int, int, int));
+double squared_diff(field, field, field);

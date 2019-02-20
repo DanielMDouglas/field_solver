@@ -3,7 +3,7 @@
 volume::volume(double Xm, double XM,
 	       double Ym, double YM,
 	       double Zm, double ZM,
-	       double voltage)
+	       std::function<double (double, double, double)> voltage_function)
 {
   Xmin = Xm;
   Xmax = XM;
@@ -11,7 +11,12 @@ volume::volume(double Xm, double XM,
   Ymax = YM;
   Zmin = Zm;
   Zmax = ZM;
-  V = voltage;
+  V = voltage_function;
+}
+
+double volume::get_voltage(double x, double y, double z)
+{
+  return V(x, y, z);
 }
 
 bool volume::is_in_boundary(double x, double y, double z)

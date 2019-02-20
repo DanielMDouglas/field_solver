@@ -3,158 +3,87 @@
 #include <vector>
 
 #include "solver.h"
-#include "field.h"
 
-double xL = 50;
-double yL = 50;
-double zL = 50;
+void solve_field(boundary b) {
+  // make some initial guess for the solution
+  // assume a linear field
+  int nPointsX = 100;
+  int nPointsY = 100;
+  int nPointsZ = 100;
 
-// the size of each step (in x and y)
-double ds = 1;
-const int nPointsX = xL/ds;
-const int nPointsY = yL/ds;
-const int nPointsZ = zL/ds;
-
-// number of iterations
-// with ds = 2, 15000 seems to be a good number
-int nIter = 10000;
-
-// constant by which each timestep is multiplied
-// should be 1./4 if dx == dy
-// using 1./6 for 3 dimensions
-double weight_f = 1./6;
-
-double anodePotential = 100;
-double cathodePotential = 0;
-double padPotential = 150;
-double shaperPotential = 50;
-
-std::vector <double> linspace(double start, double end, int nPoints) {
-  std::vector<double> result (nPoints);
-  double delta = (end - start)/(nPoints - 1);
-  for ( int i = 0; i < nPoints; i++ ) {
-    result[i] = start + i*delta;
-  }
+  double weight_f = 1./6;
+  int nIter = 10000;
   
-  return result;
-}
+  field bval = field(b, nPointsX, nPointsY, nPointsZ, "val");
+  field is_b = field(b, nPointsX, nPointsY, nPointsZ, "bool");
+  
+  double intercept = b.boundary_value(0, 0, 0);
+  double xSlope = (b.boundary_value(b.Xmax, 0, 0) - b.boundary_value(b.Xmin, 0, 0))/(b.Xmax - b.Xmin);
+  double ySlope = (b.boundary_value(0, b.Ymax, 0) - b.boundary_value(0, b.Ymin, 0))/(b.Ymax - b.Ymin);
+  double zSlope = (b.boundary_value(0, 0, b.Zmax) - b.boundary_value(0, 0, b.Zmin))/(b.Zmax - b.Zmin);
 
-std::vector <double> x_axis = linspace(0., xL, nPointsX);
-std::vector <double> y_axis = linspace(0., yL, nPointsY);
-std::vector <double> z_axis = linspace(0., zL, nPointsZ);
+  std::vector <double> x_axis = linspace(b.Xmin, b.Xmax, nPointsX);
+  std::vector <double> y_axis = linspace(b.Ymin, b.Ymax, nPointsY);
+  std::vector <double> z_axis = linspace(b.Zmin, b.Zmax, nPointsZ);
 
-bool is_in_boundary(int i, int j, int k) {
-  if ( i == 0 ) {
-    return true;
-  }
-  else if ( i == nPointsX-1 ) {
-    return true;
-  }
-  else if ( j == 0 ) {
-    return true;
-  }
-  else if ( j == nPointsY-1 ) {
-    return true;
-  }
-  else if ( k == 0 ) {
-    return true;
-  }
-  else if ( k == nPointsZ-1 ) {
-    return true;
-  }
-  else return false;
-}
+  field solution = field(x_axis, y_axis, z_axis, linear(intercept, xSlope, ySlope, zSlope));
+  field tempGrid = field(x_axis, y_axis, z_axis, constant(0.));
+  
+  solution.print_to_file("initial.dat");
 
-double boundary_value(int i, int j, int k) {
-  // Field Cage
-  if ( i == 0 ) {
-    // field shell
-    return y_axis[j]/yL*(anodePotential - cathodePotential) + cathodePotential;
-  }
-  else if ( i == nPointsX-1 ) {
-    // field shell
-    return y_axis[j]/yL*(anodePotential - cathodePotential) + cathodePotential;
-  }
-  if ( k == 0 ) {
-    // field shell
-    return y_axis[j]/yL*(anodePotential - cathodePotential) + cathodePotential;
-  }
-  else if ( k == nPointsZ-1 ) {
-    // field shell
-    return y_axis[j]/yL*(anodePotential - cathodePotential) + cathodePotential;
-  }
-  else if ( j == 0 ) {
-    // cathode
-    return cathodePotential;
-  }
-  else if ( j == nPointsY-1 ) {
-    // anode
-    return anodePotential;
-  }
-  else return 0;
-}
-
-field V (x_axis, y_axis, z_axis, anodePotential/2);
-field tempGrid (x_axis, y_axis, z_axis, 0.);
-
-double linear(double x, double y, double z) {
-  // the analytic solution
-  // used to initialize the analytic field
-  return y*anodePotential/yL;
-}
-
-field analytic_solution(x_axis, y_axis, z_axis, linear);  
-
-void solve_field() {
   // set initial boundary values
   // these values don't get updated
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) { 
-	if ( is_in_boundary(i, j, k) ) {
-	  V.set(i, j, k, boundary_value(i, j, k));
+	if ( b.is_in_boundary(x_axis[i],
+			      y_axis[j],
+			      z_axis[k]) ) {
+	  solution.set(i, j, k, b.boundary_value(x_axis[i],
+						 y_axis[j],
+						 z_axis[k]));
 	}
       }
     }
   }
 
   for ( int iter = 0; iter < nIter; iter++ ) {
-    // set tempGrid to the average 
+    // set tempGrid to the average of the neighboring cells
     for ( int i = 0; i < nPointsX; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
-	  if ( not is_in_boundary(i, j, k) ) {
+	  if ( not b.is_in_boundary(x_axis[i],
+				    y_axis[j],
+				    z_axis[k]) ) {
 	    tempGrid.set(i, j, k,
-			 weight_f*(V.get(i-1, j, k) +
-				   V.get(i+1, j, k) +
-				   V.get(i, j-1, k) +
-				   V.get(i, j+1, k) +
-				   V.get(i, j, k-1) +
-				   V.get(i, j, k+1)));
+			 weight_f*(solution.get(i-1, j, k) +
+				   solution.get(i+1, j, k) +
+				   solution.get(i, j-1, k) +
+				   solution.get(i, j+1, k) +
+				   solution.get(i, j, k-1) +
+				   solution.get(i, j, k+1)));
 	  }
 	}
       }
     }
 
     if ( iter % 100 == 0 ) {
-      // print out the squared_diff between current iteration
-      // and the analytic solution
+      // print out the squared_diff between current iteration and previous iteration
       std::cout << iter << '\t'
-		<< squared_diff(V, analytic_solution, is_in_boundary) << '\t'
-		<< squared_diff(V, tempGrid, is_in_boundary) << '\t'
+		<< squared_diff(solution, tempGrid, is_b) << '\t'
 		<< std::endl;
-      if ( squared_diff(V, tempGrid, is_in_boundary) < 1.e-7 ) {
+      if ( squared_diff(solution, tempGrid, is_b) < 1.e-7 ) {
 	std::cout << "solution converged after " << iter << " iterations" << std::endl;
 	break;
       }
     }
       
-    // set V to the tempGrid
+    // set solution to the tempGrid
     for ( int i = 0; i < nPointsX; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
-	  if ( not is_in_boundary(i, j, k) ) {
-	    V.set(i, j, k,
+	  if ( not b.is_in_boundary(x_axis[i], y_axis[j], z_axis[k]) ) {
+	    solution.set(i, j, k,
 		  tempGrid.get(i, j, k));
 	  }
 	}
@@ -162,20 +91,15 @@ void solve_field() {
     }
   }
 
-  std::cout << "final stepwise difference: " << squared_diff(V, tempGrid, is_in_boundary) << std::endl;
+  std::cout << "final stepwise difference: " << squared_diff(solution, tempGrid, is_b) << std::endl;
   
-  V.print_to_file("convergence.dat");
-  analytic_solution.print_to_file("analytic.dat");
+  solution.print_to_file("final.dat");
 }
-  
+
 int main() {
-  // solve_field();
 
   boundary detector;
-
-  // std::cout << detector.volumes[0] -> is_in_boundary(-1., 110., 1.) << std::endl;
-  field detector_bounds(detector, 100, 100, 100);
-  detector_bounds.print_to_file("foo.dat");
+  solve_field(detector);
   
   return 0;
 }

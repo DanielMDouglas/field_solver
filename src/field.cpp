@@ -5,7 +5,6 @@
 #include <cmath>
 
 #include "field.h"
-#include "solver.h"
 
 field::field(std::vector <double> x,
 	     std::vector <double> y,
@@ -26,7 +25,7 @@ field::field(std::vector <double> x,
 field::field(std::vector <double> x,
 	     std::vector <double> y,
 	     std::vector <double> z,
-	     double (*f)(double, double, double))
+	     std::function<double (double, double, double)> f)
 {
   xSize = x.size();
   ySize = y.size();
@@ -41,13 +40,13 @@ field::field(std::vector <double> x,
   for ( int i = 0; i < xSize; i++ ) {
     for ( int j = 0; j < ySize; j++ ) {
       for ( int k = 0; k < zSize; k++ ) {
-	set(i, j, k, (*f)(x[i], y[j], z[k]));
+	set(i, j, k, f(x[i], y[j], z[k]));
       }
     }
   }
 }
 
-field::field(boundary bound, int Nx, int Ny, int Nz)
+field::field(boundary bound, int Nx, int Ny, int Nz, std::string type = "val")
 {
   xSize = Nx;
   ySize = Ny;
@@ -59,20 +58,34 @@ field::field(boundary bound, int Nx, int Ny, int Nz)
 
   values = std::vector< double > (xSize*ySize*zSize);
 
-  for ( int i = 0; i < xSize; i++ ) {
-    for ( int j = 0; j < ySize; j++ ) {
-      for ( int k = 0; k < zSize; k++ ) {
-	if ( bound.is_in_boundary(x_space[i],
-				  y_space[j],
-				  z_space[k]) ) {
-	  set(i, j, k, 1);
-	}
-	else {
-	  set(i, j, k, 0);
+  if ( type == "val" ) {
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  set(i, j, k,
+	      bound.boundary_value(x_space[i],
+				   y_space[j],
+				   z_space[k]));
 	}
       }
     }
   }
+  else if ( type == "bool" ) {
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  if ( bound.is_in_boundary(x_space[i],
+				    y_space[j],
+				    z_space[k]) ) {
+	    set(i, j, k, 1);
+	  }
+	  else {
+	    set(i, j, k, 0);
+	  }
+	}
+      }
+    }
+  }  
 }
 
 void field::set(int i, int j, int k, double value)
@@ -136,7 +149,7 @@ double squared_diff(field a, field b)
   return 0;
 }
 
-double squared_diff(field a, field b, bool (*exclude)(int, int, int))
+double squared_diff(field a, field b, field exclude)
 {
   // return the squared differences of each field
 
@@ -153,7 +166,7 @@ double squared_diff(field a, field b, bool (*exclude)(int, int, int))
       for ( int i = 0; i < a.xSize; i++ ) {
 	for ( int j = 0; j < a.ySize; j++ ) {
 	  for ( int k = 0; k < a.zSize; k++ ) {
-	    if ( not exclude(i, j, k) ) {
+	    if ( not exclude.get(i, j, k) ) {
 	      sum += pow(a.get(i, j, k) - b.get(i, j, k), 2);
 	      n_points++;
 	    }

@@ -1,15 +1,15 @@
 #include <G4GDMLParser.hh>
 
-#include <boundary.h>
+#include "boundary.h"
 
 boundary::boundary()
 {
-  volumes[0] = new volume(0., 100., 0., 100., 0., 2., 0.);
-  volumes[1] = new volume(0., 100., 0., 100., 98., 100., 0.);
-  volumes[2] = new volume(0., 2., 0., 100., 0., 100., 0.);
-  volumes[3] = new volume(98., 100., 0., 100., 0., 100., 0.);
-  volumes[4] = new volume(0., 100., 0., 2., 0., 100., 0.);
-  volumes[5] = new volume(0., 100., 98., 100., 0., 100., 0.);
+  volumes[0] = new volume(0., 100., 0., 100., 0., 2., constant(0.));
+  volumes[1] = new volume(0., 100., 0., 100., 98., 100., constant(100.));
+  volumes[2] = new volume(0., 2., 0., 100., 0., 100., linear(0., 0., 0., 1.));
+  volumes[3] = new volume(98., 100., 0., 100., 0., 100., linear(0., 0., 0., 1.));
+  volumes[4] = new volume(0., 100., 0., 2., 0., 100., linear(0., 0., 0., 1.));
+  volumes[5] = new volume(0., 100., 98., 100., 0., 100., linear(0., 0., 0., 1.));
 
   for ( uint i = 0; i < 6; i++ ) {
     if ( volumes[i] -> Xmin < Xmin ) {
@@ -47,4 +47,14 @@ bool boundary::is_in_boundary(double x, double y, double z)
     }
   }
   return is_in_any;
+}
+
+double boundary::boundary_value(double x, double y, double z)
+{
+  for ( uint i = 0; i < 6; i++ ) {
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      return volumes[i] -> V(x, y, z);
+    }
+  }
+  return 0;
 }
