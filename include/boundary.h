@@ -10,7 +10,9 @@
 class boundary
 {
  public:
-  volume * volumes[6];
+  const static int maxNVolumes = 200;
+  int nVolumes;
+  volume * volumes[maxNVolumes];
   double Xmin, Xmax = 0;
   double Ymin, Ymax = 0;
   double Zmin, Zmax = 0;

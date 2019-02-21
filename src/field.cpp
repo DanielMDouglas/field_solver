@@ -25,7 +25,7 @@ field::field(std::vector <double> x,
 field::field(std::vector <double> x,
 	     std::vector <double> y,
 	     std::vector <double> z,
-	     std::function<double (double, double, double)> f)
+	     std::function <double (double, double, double)> f)
 {
   xSize = x.size();
   ySize = y.size();
@@ -35,7 +35,7 @@ field::field(std::vector <double> x,
   y_space = y;
   z_space = z;
 
-  values = std::vector< double > (xSize*ySize*zSize);
+  values = std::vector <double> (xSize*ySize*zSize);
 
   for ( int i = 0; i < xSize; i++ ) {
     for ( int j = 0; j < ySize; j++ ) {

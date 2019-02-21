@@ -13,7 +13,7 @@ void solve_field(boundary b) {
 
   double weight_f = 1./6;
   int nIter = 10000;
-  
+    
   field bval = field(b, nPointsX, nPointsY, nPointsZ, "val");
   field is_b = field(b, nPointsX, nPointsY, nPointsZ, "bool");
   
@@ -36,9 +36,7 @@ void solve_field(boundary b) {
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) { 
-	if ( b.is_in_boundary(x_axis[i],
-			      y_axis[j],
-			      z_axis[k]) ) {
+	if ( is_b.get(i, j, k) ) {
 	  solution.set(i, j, k, b.boundary_value(x_axis[i],
 						 y_axis[j],
 						 z_axis[k]));
@@ -52,9 +50,7 @@ void solve_field(boundary b) {
     for ( int i = 0; i < nPointsX; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
-	  if ( not b.is_in_boundary(x_axis[i],
-				    y_axis[j],
-				    z_axis[k]) ) {
+	  if ( not is_b.get(i, j, k) ) {
 	    tempGrid.set(i, j, k,
 			 weight_f*(solution.get(i-1, j, k) +
 				   solution.get(i+1, j, k) +
@@ -82,7 +78,7 @@ void solve_field(boundary b) {
     for ( int i = 0; i < nPointsX; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
-	  if ( not b.is_in_boundary(x_axis[i], y_axis[j], z_axis[k]) ) {
+	  if ( not is_b.get(i, j, k) ) {
 	    solution.set(i, j, k,
 		  tempGrid.get(i, j, k));
 	  }
