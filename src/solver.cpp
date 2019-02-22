@@ -14,8 +14,8 @@ void solve_field(boundary b) {
   double weight_f = 1./6;
   int nIter = 10000;
     
-  field bval = field(b, nPointsX, nPointsY, nPointsZ, "val");
-  field is_b = field(b, nPointsX, nPointsY, nPointsZ, "bool");
+  scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
+  scalarField is_b = scalarField(b, nPointsX, nPointsY, nPointsZ, "bool");
   
   double intercept = b.boundary_value(0, 0, 0);
   double xSlope = (b.boundary_value(b.Xmax, 0, 0) - b.boundary_value(b.Xmin, 0, 0))/(b.Xmax - b.Xmin);
@@ -26,8 +26,8 @@ void solve_field(boundary b) {
   std::vector <double> y_axis = linspace(b.Ymin, b.Ymax, nPointsY);
   std::vector <double> z_axis = linspace(b.Zmin, b.Zmax, nPointsZ);
 
-  field solution = field(x_axis, y_axis, z_axis, linear(intercept, xSlope, ySlope, zSlope));
-  field tempGrid = field(x_axis, y_axis, z_axis, constant(0.));
+  scalarField solution = scalarField(x_axis, y_axis, z_axis, linear(intercept, xSlope, ySlope, zSlope));
+  scalarField tempGrid = scalarField(x_axis, y_axis, z_axis, constant(0.));
   
   solution.print_to_file("initial.dat");
 
@@ -90,6 +90,8 @@ void solve_field(boundary b) {
   std::cout << "final stepwise difference: " << squared_diff(solution, tempGrid, is_b) << std::endl;
   
   solution.print_to_file("final.dat");
+  vectorField Esol = vectorField(solution, "grad");
+  Esol.print_to_file("final_gradient.dat");
 }
 
 int main() {

@@ -8,49 +8,52 @@ boundary::boundary()
   double height = 100;
   double width = 100;
   double length = 100;
-  double wall_thickness = 2;
+  double wall_thickness = 1;
   
-  volumes[0] = new volume(0., length,
-			  0., width,
-			  0., wall_thickness,
-			  constant(0.));
-  volumes[1] = new volume(0., length,
-			  0., width,
-			  height - wall_thickness, height,
-			  constant(100.));
-  volumes[2] = new volume(0., wall_thickness,
+  volumes[0] = new volume(0., wall_thickness,
 			  0., width,
 			  0., height,
-			  linear(0., 0., 0., 1.));
-  volumes[3] = new volume(length - wall_thickness, length,
+			  linear(0., 0., 0., 1.5));
+  volumes[1] = new volume(length - wall_thickness, length,
 			  0., width,
 			  0., height,
-			  linear(0., 0., 0., 1.));
-  volumes[4] = new volume(0., length,
+			  linear(0., 0., 0., 1.5));
+  volumes[2] = new volume(0., length,
 			  0., wall_thickness,
 			  0., height,
-			  linear(0., 0., 0., 1.));
-  volumes[5] = new volume(0., length,
+			  linear(0., 0., 0., 1.5));
+  volumes[3] = new volume(0., length,
 			  width - wall_thickness, width,
 			  0., height,
-			  linear(0., 0., 0., 1.));
+			  linear(0., 0., 0., 1.5));
+  volumes[4] = new volume(0., length,
+  			  0., width,
+  			  0., wall_thickness,
+  			  constant(0.));
+  // volumes[1] = new volume(0., length,
+  // 			  0., width,
+  // 			  height - wall_thickness, height,
+  // 			  constant(100.));
 
-  nVolumes = 6;
+
+  // nVolumes = 6;
+  nVolumes = 5;
   
   // make the pads
-  double padSize = 9;
-  double minSpacing = 5;
+  double padSize = 5;
+  double minSpacing = 4;
   int nPadsPerRow = (length - minSpacing)/(padSize + minSpacing);
   double spacing = (length - nPadsPerRow*padSize)/(nPadsPerRow + 1);
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
-      volumes[6 + nPadsPerRow*j + i] = new volume(spacing + (padSize + spacing)*i,
-							    (spacing + padSize) + (padSize + spacing)*i,
-							    spacing + (padSize + spacing)*j,
-							    (spacing + padSize) + (padSize + spacing)*j,
-							    97.,
-							    98.,
-							    constant(200.));
+      // 6 + nPadsPerRow*j + i
+      volumes[nVolumes] = new volume(spacing + (padSize + spacing)*i,
+				     (spacing + padSize) + (padSize + spacing)*i,
+				     spacing + (padSize + spacing)*j,
+				     (spacing + padSize) + (padSize + spacing)*j,
+				     height - 1,
+				     height,
+				     constant(200.));
       nVolumes++;
     }
   }

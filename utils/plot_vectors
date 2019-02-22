@@ -1,0 +1,52 @@
+#!/usr/bin/python
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import sys
+
+def read_csv(infileName):
+    data = np.loadtxt(infileName, delimiter=',')
+    n = np.unique(data[:,0]).size
+
+    x = np.reshape(data[:,0], (n, n, n), order = 'A').T
+    y = np.reshape(data[:,1], (n, n, n), order = 'A').T
+    z = np.reshape(data[:,2], (n, n, n), order = 'A').T
+    Ex = np.reshape(data[:,3], (n, n, n), order = 'A').T
+    Ey = np.reshape(data[:,4], (n, n, n), order = 'A').T
+    Ez = np.reshape(data[:,5], (n, n, n), order = 'A').T
+
+    return x, y, z, Ex, Ey, Ez
+
+if __name__ == '__main__':
+    infileNames = sys.argv[1:]
+    
+    if not infileNames:
+        print "Please specify the file to plot from!"
+        print "Usage: plot [fieldData.dat]"
+
+        exit
+
+    for infileName in infileNames:
+        x, y, z, Ex, Ey, Ez = read_csv(infileName)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        downSampleF = 10
+        
+        ax.quiver(x[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  y[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  z[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  Ex[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  Ey[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  Ez[1:-1:downSampleF,1:-1:downSampleF,1:-1:downSampleF],
+                  length = 5,
+                  # normalize = True
+        )
+        
+        ax.set_xlabel(r'$x$ [mm]')
+        ax.set_ylabel(r'$y$ [mm]')
+        ax.set_zlabel(r'$z$ [mm]')
+
+        plt.show()

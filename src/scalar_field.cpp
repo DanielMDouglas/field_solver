@@ -4,12 +4,12 @@
 #include <fstream>
 #include <cmath>
 
-#include "field.h"
+#include "scalar_field.h"
 
-field::field(std::vector <double> x,
-	     std::vector <double> y,
-	     std::vector <double> z,
-	     double init_val = 0)
+scalarField::scalarField(std::vector <double> x,
+			 std::vector <double> y,
+			 std::vector <double> z,
+			 double init_val = 0)
 {
   xSize = x.size();
   ySize = y.size();
@@ -22,7 +22,7 @@ field::field(std::vector <double> x,
   values = std::vector< double > (xSize*ySize*zSize, init_val);
 }
 
-field::field(std::vector <double> x,
+scalarField::scalarField(std::vector <double> x,
 	     std::vector <double> y,
 	     std::vector <double> z,
 	     std::function <double (double, double, double)> f)
@@ -46,7 +46,7 @@ field::field(std::vector <double> x,
   }
 }
 
-field::field(boundary bound, int Nx, int Ny, int Nz, std::string type = "val")
+scalarField::scalarField(boundary bound, int Nx, int Ny, int Nz, std::string type = "val")
 {
   xSize = Nx;
   ySize = Ny;
@@ -88,17 +88,17 @@ field::field(boundary bound, int Nx, int Ny, int Nz, std::string type = "val")
   }  
 }
 
-void field::set(int i, int j, int k, double value)
+void scalarField::set(int i, int j, int k, double value)
 {
   values[ySize*zSize*i + zSize*j + k] = value;
 }
 
-double field::get(int i, int j, int k)
+double scalarField::get(int i, int j, int k)
 {
   return values[ySize*zSize*i + zSize*j + k];
 }
 
-void field::print_to_file(std::string filename)
+void scalarField::print_to_file(std::string filename)
 {
   std::ofstream outFile (filename.c_str());
   for ( int i = 0; i < xSize; i++ ) {
@@ -114,7 +114,7 @@ void field::print_to_file(std::string filename)
   outFile.close();
 }
 
-double squared_diff(field a, field b)
+double squared_diff(scalarField a, scalarField b)
 {
   // return the squared differences of each field
 
@@ -145,7 +145,7 @@ double squared_diff(field a, field b)
   return 0;
 }
 
-double squared_diff(field a, field b, field exclude)
+double squared_diff(scalarField a, scalarField b, scalarField exclude)
 {
   // return the squared differences of each field
 

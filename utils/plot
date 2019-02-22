@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
         plt.contour(u, v, selec, 20)
         
-        plt.xlabel(r'$x$ [m]')
-        plt.ylabel(r'$y$ [m]')
+        plt.xlabel(r'$x$ [mm]')
+        plt.ylabel(r'$y$ [mm]')
 
         plt.show()
