@@ -7,11 +7,12 @@
 void solve_field(boundary b) {
   // make some initial guess for the solution
   // assume a linear field
-  int nPointsX = 100;
-  int nPointsY = 100;
-  int nPointsZ = 100;
-
-  double weight_f = 1./6;
+  b.Zmin = -0.2;
+  
+  int nPointsX = 120;
+  int nPointsY = 120;
+  int nPointsZ = 120;
+  
   int nIter = 10000;
     
   scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
@@ -35,7 +36,7 @@ void solve_field(boundary b) {
   // these values don't get updated
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
-      for ( int k = 0; k < nPointsZ; k++ ) { 
+      for ( int k = 0; k < nPointsZ; k++ ) {
 	if ( is_b.get(i, j, k) ) {
 	  solution.set(i, j, k, b.boundary_value(x_axis[i],
 						 y_axis[j],
@@ -51,13 +52,34 @@ void solve_field(boundary b) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
 	  if ( not is_b.get(i, j, k) ) {
-	    tempGrid.set(i, j, k,
-			 weight_f*(solution.get(i-1, j, k) +
-				   solution.get(i+1, j, k) +
-				   solution.get(i, j-1, k) +
-				   solution.get(i, j+1, k) +
-				   solution.get(i, j, k-1) +
-				   solution.get(i, j, k+1)));
+	    double sum = 0;
+	    double weight = 0;
+	    if ( not ( i == 0 ) ) {  
+	      sum += solution.get(i-1, j, k);
+	      weight += 1;
+	    }
+	    if ( not ( i == nPointsX-1 ) ) {
+	      sum += solution.get(i+1, j, k);
+	      weight += 1;
+	    }
+	    if ( not ( j == 0 ) ) {
+	      sum += solution.get(i, j-1, k);
+	      weight += 1;
+	    }
+	    if ( not ( j == nPointsY-1 ) ) {
+	      sum += solution.get(i, j+1, k);
+	      weight += 1;
+	    }
+	    if ( not ( k == 0 ) ) {
+	      sum += solution.get(i, j, k-1);
+	      weight += 1;
+	    }
+	    if ( not ( k == nPointsZ-1 ) ) {
+	      sum += solution.get(i, j, k+1);
+	      weight += 1;
+	    }
+	    sum /= weight;
+	    tempGrid.set(i, j, k, sum);
 	  }
 	}
       }
@@ -68,7 +90,7 @@ void solve_field(boundary b) {
       std::cout << iter << '\t'
 		<< squared_diff(solution, tempGrid, is_b) << '\t'
 		<< std::endl;
-      if ( squared_diff(solution, tempGrid, is_b) < 1.e-7 ) {
+      if ( squared_diff(solution, tempGrid, is_b) < 1.e-10 ) {
 	std::cout << "solution converged after " << iter << " iterations" << std::endl;
 	break;
       }

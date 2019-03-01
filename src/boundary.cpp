@@ -5,58 +5,33 @@
 boundary::boundary()
 {
   // make the field cage
-  double height = 100;
-  double width = 100;
-  double length = 100;
-  double wall_thickness = 1;
+  double xLow = -1;
+  double xHigh = 1;
+  double yLow = -1;
+  double yHigh = 1;
+  double zLow = -0.2;
+  double zHigh = 1.8;
   
-  volumes[0] = new volume(0., wall_thickness,
-			  0., width,
-			  0., height,
-			  linear(0., 0., 0., 1.5));
-  volumes[1] = new volume(length - wall_thickness, length,
-			  0., width,
-			  0., height,
-			  linear(0., 0., 0., 1.5));
-  volumes[2] = new volume(0., length,
-			  0., wall_thickness,
-			  0., height,
-			  linear(0., 0., 0., 1.5));
-  volumes[3] = new volume(0., length,
-			  width - wall_thickness, width,
-			  0., height,
-			  linear(0., 0., 0., 1.5));
-  volumes[4] = new volume(0., length,
-  			  0., width,
-  			  0., wall_thickness,
-  			  constant(0.));
-  // volumes[1] = new volume(0., length,
-  // 			  0., width,
-  // 			  height - wall_thickness, height,
-  // 			  constant(100.));
-
-
-  // nVolumes = 6;
-  nVolumes = 5;
+  double wall_thickness = 0.05;
   
-  // make the pads
-  double padSize = 5;
-  double minSpacing = 4;
-  int nPadsPerRow = (length - minSpacing)/(padSize + minSpacing);
-  double spacing = (length - nPadsPerRow*padSize)/(nPadsPerRow + 1);
-  for ( int i = 0; i < nPadsPerRow; i++ ) {
-    for ( int j = 0; j < nPadsPerRow; j++ ) {
-      // 6 + nPadsPerRow*j + i
-      volumes[nVolumes] = new volume(spacing + (padSize + spacing)*i,
-				     (spacing + padSize) + (padSize + spacing)*i,
-				     spacing + (padSize + spacing)*j,
-				     (spacing + padSize) + (padSize + spacing)*j,
-				     height - 1,
-				     height,
-				     constant(200.));
-      nVolumes++;
-    }
-  }
+  // nVolumes = 0;
+
+  // far cathode plane  
+  volumes[nVolumes] = new volume(xLow, xHigh,
+				 yLow, yHigh,
+				 zHigh - wall_thickness, zHigh,
+				 constant(-0.55));
+  nVolumes++;
+  
+  // make_field_cage(xLow, xHigh,
+  // 		  yLow, yHigh,
+  // 		  1.0, zHigh,
+  // 		  wall_thickness,
+  // 		  0.23, -0.273);
+  
+  make_wires(xLow, xHigh,
+	     yLow, yHigh,
+	     zLow, zHigh);  
     
   for ( uint i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> Xmin < Xmin ) {
@@ -78,11 +53,100 @@ boundary::boundary()
       Zmax = volumes[i] -> Zmax;
     }
   }
+}
 
-  std::cout << Xmin << '\t' << Xmax << '\n'
-	    << Ymin << '\t' << Ymax << '\n'
-	    << Zmin << '\t' << Zmax << '\n'
-	    << std::endl;
+void boundary::make_pads(double xLow, double xHigh,
+			 double yLow, double yHigh,
+			 double zLow, double zHigh)
+{
+  double padSize = 0.2;
+  double padThickness = 0.05;
+  double minSpacing = 0.1;
+  int nPadsPerRow = (xHigh - xLow - minSpacing)/(padSize + minSpacing);
+  double spacing = (xHigh - xLow - nPadsPerRow*padSize)/(nPadsPerRow + 1);
+  double padPotential = 0.23;
+
+  // make the pads
+  for ( int i = 0; i < nPadsPerRow; i++ ) {
+    for ( int j = 0; j < nPadsPerRow; j++ ) {
+      volumes[nVolumes] = new volume(xLow + spacing + (padSize + spacing)*i,
+				     (xLow + spacing + padSize) + (padSize + spacing)*i,
+				     yLow + spacing + (padSize + spacing)*j,
+				     (yLow + spacing + padSize) + (padSize + spacing)*j,
+				     -padThickness/2, padThickness/2,
+				     constant(padPotential));
+      nVolumes++;
+    }
+  }
+
+  double shaperPotential = 0;
+  
+  // make the field shaper
+  volumes[nVolumes] = new volume(xLow, xHigh,
+  				 yLow, yHigh,
+  				 -0.025, 0.025,
+  				 constant(shaperPotential));
+  nVolumes++;
+}
+
+void boundary::make_wires(double xLow, double xHigh,
+			  double yLow, double yHigh,
+			  double zLow, double zHigh)
+{
+  // wires!
+  double wire_rad = 0.025;
+  double wire_pitch = 0.3;
+  double wire_potential;
+  for ( double x = -0.9; x < 0.9; x += wire_pitch ) {
+    for ( double z = 0; z < 0.6; z += wire_pitch ) {
+      if ( z == 0 ) {
+	wire_potential = 0.23;
+      }
+      else if ( z == 0.3 ) {
+	wire_potential = 0;
+      }
+      else if ( z == 0.6 ) {
+	wire_potential = -0.11;
+      }
+      
+      volumes[nVolumes] = new volume(x - wire_rad, x + wire_rad,
+				     yLow, yHigh,
+				     z - wire_rad, z + wire_rad,
+				     constant(wire_potential));
+      nVolumes++;
+    }
+  }
+}
+
+void boundary::make_field_cage(double xLow, double xHigh,
+			       double yLow, double yHigh,
+			       double zLow, double zHigh,
+			       double wall_thickness,
+			       double intercept,
+			       double zSlope)
+{
+  // Field cage walls
+  
+  volumes[nVolumes] = new volume(xLow, xLow + wall_thickness,
+  				 yLow, yHigh,
+  				 zLow, zHigh,
+  				 linear(intercept, 0., 0., zSlope));
+  nVolumes++;
+  volumes[nVolumes] = new volume(xHigh - wall_thickness, xHigh,
+  				 yLow, yHigh,
+  				 zLow, zHigh,
+  				 linear(intercept, 0., 0., zSlope));
+  nVolumes++;
+  volumes[nVolumes] = new volume(xLow, xHigh,
+  				 yLow, yLow + wall_thickness,
+  				 zLow, zHigh,
+  				 linear(intercept, 0., 0., zSlope));
+  nVolumes++;
+  volumes[nVolumes] = new volume(xLow, xHigh,
+  				 yHigh - wall_thickness, yHigh,
+  				 zLow, zHigh,
+  				 linear(intercept, 0., 0., zSlope));
+  nVolumes++;
 }
 
 bool boundary::is_in_boundary(double x, double y, double z)

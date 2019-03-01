@@ -9,7 +9,7 @@ def read_csv(infileName):
     x = np.unique(data[:,0])
     y = np.unique(data[:,1])
     z = np.unique(data[:,2])
-    values = np.reshape(data[:,3], (x.size, y.size, z.size), order='A').T
+    values = np.reshape(data[:,3], (x.size, y.size, z.size), order='C')
     
     return x, y, z, values
 
@@ -58,14 +58,14 @@ if __name__ == '__main__':
         Vmax = np.max(selec)
     
         plt.figure()
-        cmesh = plt.pcolormesh(u, v, selec, cmap = 'Blues')
+        cmesh = plt.pcolormesh(v, u, selec.T, cmap = 'Blues')
         cb = plt.colorbar(ticks = [0, Vmax])
         cmesh.set_clim(vmin=0, vmax=Vmax)
         cb.ax.set_yticklabels([0, r'$V_{max}$'])
 
-        plt.contour(u, v, selec, 20)
+        plt.contour(v, u, selec.T, 20)
         
-        plt.xlabel(r'$x$ [mm]')
-        plt.ylabel(r'$y$ [mm]')
+        plt.xlabel(r'$x$ [cm]')
+        plt.ylabel(r'$z$ [cm]')
 
         plt.show()
