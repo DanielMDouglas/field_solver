@@ -57,61 +57,72 @@ def plot_pads(ax):
 
 
 if __name__ == '__main__':
-    x, y, z, potential = read_csv('wire_potential.dat')
-
-    print "loaded potential!"
+    infileNames = sys.argv[1:]
+    if not infileNames:
+        print "Please specify the file to use!"
+        print "Usage: drift_path [fieldData.dat]"
     
-    get_potential = RegularGridInterpolator((x, y, z), potential)
+    for infileName in infileNames:
+        x, y, z, potential = read_csv(infileName)
 
-    print "initialized interpolator!"
+        print "loaded potential!"
+    
+        get_potential = RegularGridInterpolator((x, y, z), potential)
 
-    def E(x, y, z):
-        ds = 0.01
-        Ex = (get_potential(np.array([x-ds, y, z])) - get_potential(np.array([x+ds, y, z])))/(2*ds)
-        Ey = (get_potential(np.array([x, y-ds, z])) - get_potential(np.array([x, y+ds, z])))/(2*ds)
-        Ez = (get_potential(np.array([x, y, z-ds])) - get_potential(np.array([x, y, z+ds])))/(2*ds)
+        print "initialized interpolator!"
+
+        def E(x, y, z):
+            ds = 0.01
+            Ex = (get_potential(np.array([x-ds, y, z])) - get_potential(np.array([x+ds, y, z])))/(2*ds)
+            Ey = (get_potential(np.array([x, y-ds, z])) - get_potential(np.array([x, y+ds, z])))/(2*ds)
+            Ez = (get_potential(np.array([x, y, z-ds])) - get_potential(np.array([x, y, z+ds])))/(2*ds)
         
-        return np.array([Ex, Ey, Ez]).squeeze()
+            return np.array([Ex, Ey, Ez]).squeeze()
 
-    fig, ax = plt.subplots(1)
+
+        fig, ax = plt.subplots(1)
     
     
-    for xi in np.linspace(-0.9, 0.9, 50):
-        path = []
+        # for xi in np.linspace(-0.9, 0.9, 50):
+        for xi in np.linspace(-0.3, 0.3, 20):
+            path = []
         
-        pos = np.array([xi, 0.15, 1.5])
-        mom = np.array([0., 0., 0.])
-        # q = -1.
-        q = -1.602e-19 # C
-        # m = 511.
-        m = 9.109e-31 # kg
-        mu = 5.e4 # cm^2 / V / s
+            pos = np.array([xi, 0.15, 1.5])
+            print "initial: ", pos
+            mom = np.array([0., 0., 0.])
+            # q = -1.
+            q = -1.602e-19 # C
+            # m = 511.
+            m = 9.109e-31 # kg
+            mu = 1.e5 # cm^2 / V / s
 
-        dt = 1.e-11 # s
-        t = 0
-    
-        # adjust so that the charges stay within the region where the field is defined
-    
-        # while pos[0] < 99 and pos[1] > 1 and pos[1] < 99 and pos[2] > 1 and pos[2] < 99:
-        while pos[0] >= -0.95 and pos[0] <= 0.95 and pos[2] > -0.15 and t < dt*1.e4:
-            Fe = 1.e7*E(*pos)*q # kJ/cm = 1.e7 kg cm / s^2
-            Fd = 1.e4*q*mom/(m*mu) # J/cm = 1.e4 kg cm / s^2
-            # Fd = np.zeros_like(Fe)
-            mom += (Fe + Fd)*dt # kg cm / s
-            pos += mom/m*dt # cm/s
-            t += dt # s
-
-            path.append(pos.copy())
+            dt = 5.e-11 # s
+            t = 0
         
-            print t, pos, mom/m
-
-        patharray = np.array(path)
-        plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
-
-
-    plot_wires()
-        
-    plt.xlabel(r'x [cm]')
-    plt.ylabel(r'z [cm]')
+            # adjust so that the charges stay within the region where the field is defined
     
-    plt.show()
+            # while pos[0] < 99 and pos[1] > 1 and pos[1] < 99 and pos[2] > 1 and pos[2] < 99:
+            while pos[0] >= -0.95 and pos[0] <= 0.95 and pos[2] > 0 and t < dt*1.e4:
+                Fe = 1.e7*E(*pos)*q # kJ/cm = 1.e7 kg cm / s^2
+                Fd = 1.e4*q*mom/(m*mu) # J/cm = 1.e4 kg cm / s^2
+                # Fd = np.zeros_like(Fe)
+                mom += (Fe + Fd)*dt # kg cm / s
+                pos += mom/m*dt # cm/s
+                t += dt # s
+                # print t, pos, mom, Fe, Fd
+                
+                path.append(pos.copy())
+            
+                # print t, pos, 1.e3*E(*pos)
+            print "final: ", pos
+            patharray = np.array(path)
+            plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
+
+
+        # plot_wires()
+        plot_pads(ax)
+        
+        plt.xlabel(r'x [cm]')
+        plt.ylabel(r'z [cm]')
+    
+        plt.show()

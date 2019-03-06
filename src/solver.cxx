@@ -7,14 +7,15 @@
 void solve_field(boundary b) {
   // make some initial guess for the solution
   // assume a linear field
-  b.Zmin = -0.2;
+  b.Zmin = -0.3;
   
   int nPointsX = 120;
   int nPointsY = 120;
   int nPointsZ = 120;
   
   int nIter = 10000;
-    
+  double tolerance = 1.e-10;
+  
   scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
   scalarField is_b = scalarField(b, nPointsX, nPointsY, nPointsZ, "bool");
   
@@ -46,6 +47,10 @@ void solve_field(boundary b) {
     }
   }
 
+  bool periodicX = true;
+  bool periodicY = true;
+  bool periodicZ = false;
+  
   for ( int iter = 0; iter < nIter; iter++ ) {
     // set tempGrid to the average of the neighboring cells
     for ( int i = 0; i < nPointsX; i++ ) {
@@ -58,25 +63,61 @@ void solve_field(boundary b) {
 	      sum += solution.get(i-1, j, k);
 	      weight += 1;
 	    }
+	    else {
+	      if ( periodicX ) {
+		sum += solution.get(nPointsX-1, j, k);
+		weight += 1;
+	      }
+	    }
 	    if ( not ( i == nPointsX-1 ) ) {
 	      sum += solution.get(i+1, j, k);
 	      weight += 1;
+	    }
+	    else {
+	      if ( periodicX ) {
+		sum += solution.get(0, j, k);
+		weight += 1;
+	      }
 	    }
 	    if ( not ( j == 0 ) ) {
 	      sum += solution.get(i, j-1, k);
 	      weight += 1;
 	    }
+	    else {
+	      if ( periodicY ) {
+		sum += solution.get(i, nPointsY-1, k);
+		weight += 1;
+	      }
+	    }
 	    if ( not ( j == nPointsY-1 ) ) {
 	      sum += solution.get(i, j+1, k);
 	      weight += 1;
+	    }
+	    else {
+	      if ( periodicY ) {
+		sum += solution.get(i, 0, k);
+		weight += 1;
+	      }
 	    }
 	    if ( not ( k == 0 ) ) {
 	      sum += solution.get(i, j, k-1);
 	      weight += 1;
 	    }
+	    else {
+	      if ( periodicZ ) {
+		sum += solution.get(i, j, nPointsZ-1);
+		weight += 1;
+	      }
+	    }
 	    if ( not ( k == nPointsZ-1 ) ) {
 	      sum += solution.get(i, j, k+1);
 	      weight += 1;
+	    }
+	    else {
+	      if ( periodicZ ) {
+		sum += solution.get(i, j, 0);
+		weight += 1;
+	      }
 	    }
 	    sum /= weight;
 	    tempGrid.set(i, j, k, sum);
@@ -90,7 +131,7 @@ void solve_field(boundary b) {
       std::cout << iter << '\t'
 		<< squared_diff(solution, tempGrid, is_b) << '\t'
 		<< std::endl;
-      if ( squared_diff(solution, tempGrid, is_b) < 1.e-10 ) {
+      if ( squared_diff(solution, tempGrid, is_b) < tolerance ) {
 	std::cout << "solution converged after " << iter << " iterations" << std::endl;
 	break;
       }

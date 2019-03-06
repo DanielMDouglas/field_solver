@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+#include <math.h>
 
 #include "scalar_field.h"
 
@@ -88,6 +90,46 @@ scalarField::scalarField(boundary bound, int Nx, int Ny, int Nz, std::string typ
   }  
 }
 
+scalarField::scalarField(std::string filename)
+{
+  std::ifstream inFile (filename.c_str());
+
+  std::string entry;
+  double value;
+  int nLines = 0;
+
+  while (getline(inFile, entry, ',')) {
+    value = std::stod(entry);
+    if ( std::find ( x_space.begin(), x_space.end(), value ) == x_space.end() ) {
+      x_space.push_back(value);
+    }
+    
+    getline(inFile, entry, ',');
+    value = std::stod(entry);
+    if ( std::find ( y_space.begin(), y_space.end(), value ) == y_space.end() ) {
+      y_space.push_back(value);
+    }
+
+    getline(inFile, entry, ',');
+    value = std::stod(entry);
+    if ( std::find ( z_space.begin(), z_space.end(), value ) == z_space.end() ) {
+      z_space.push_back(value);
+    }
+
+    getline(inFile, entry, '\n');
+    values.push_back(std::stod(entry));
+    
+    nLines++;
+  }
+
+  inFile.close();
+  std::cout << "read " << nLines << " lines" << std::endl;
+
+  xSize = x_space.size();
+  ySize = y_space.size();
+  zSize = z_space.size();
+}
+
 void scalarField::set(int i, int j, int k, double value)
 {
   values[ySize*zSize*i + zSize*j + k] = value;
@@ -112,6 +154,50 @@ void scalarField::print_to_file(std::string filename)
     }
   }
   outFile.close();
+}
+
+double scalarField::interpolate(std::vector <double> pos)
+{
+  // get the 8 nearest points on the grid
+  int i = 0;
+  while ( x_space[i] < pos[0] ) {
+    i++;
+  }
+  int xLowInd = i-1;
+  int xHighInd = i;
+  
+  i = 0;
+  while ( y_space[i] < pos[1] ) {
+    i++;
+  }
+  int yLowInd = i-1;
+  int yHighInd = i;
+  
+  i = 0;
+  while ( z_space[i] < pos[2] ) {
+    i++;
+  }
+  int zLowInd = i-1;
+  int zHighInd = i;
+
+  // inverse distance weighting
+  double normalization = 0;
+  double sum = 0;
+  for ( int i: {xLowInd, xHighInd} ) {
+    for ( int j: {yLowInd, yHighInd} ) {
+      for ( int k: {zLowInd, zHighInd} ) {
+	std::vector <double> edgePos = {x_space[i], y_space[j], z_space[k]};
+	double weight = pow(mag(pos - edgePos), -1);
+
+	sum += weight*get(i, j, k);
+	normalization += weight;
+	// std::cout << get(i, j, k) << std::endl;
+      }
+    }
+  }
+  sum /= normalization;
+  
+  return sum;
 }
 
 double squared_diff(scalarField a, scalarField b)

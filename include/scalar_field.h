@@ -23,10 +23,12 @@ class scalarField
 	      std::vector <double>,
 	      std::vector <double>,
 	      std::function<double (double, double, double)>);
-  scalarField(boundary, int, int, int, std::string); 
+  scalarField(boundary, int, int, int, std::string);
+  scalarField(std::string);
   void set(int, int, int, double);
   double get(int, int, int);
   void print_to_file(std::string);
+  double interpolate(std::vector <double>);
 };
 
 double squared_diff(scalarField, scalarField);

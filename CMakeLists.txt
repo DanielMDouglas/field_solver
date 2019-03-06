@@ -19,6 +19,7 @@ else()
   find_package(Geant4 REQUIRED)
 endif()
 
+find_package(Threads)
 
 # list(APPEND CMAKE_PREFIX_PATH $ENV{ROOTSYS})
 # find_package(ROOT REQUIRED COMPONENTS RIO Net)
@@ -42,15 +43,22 @@ include(${Geant4_USE_FILE})
 file(GLOB sources ${PROJECT_SOURCE_DIR}/src/*.cpp)
 file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 
-
 #----------------------------------------------------------------------------
 # Add the executable, and link it to the Geant4 libraries
 #
-add_executable(solver ${sources} ${headers})
+
+add_executable( solver ${PROJECT_SOURCE_DIR}/src/solver.cxx ${sources} ${headers})
+target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+
+add_executable( drift ${PROJECT_SOURCE_DIR}/src/drift.cxx ${sources} ${headers})
+target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+
 # if(ROOT_FOUND)
 #   target_link_libraries(G4Sim ${Geant4_LIBRARIES} ${ROOT_LIBRARIES})
 # else()
-target_link_libraries(solver ${Geant4_LIBRARIES})
+# target_link_libraries(solver ${Geant4_LIBRARIES})
+# target_link_libraries(drift ${Geant4_LIBRARIES})
 # endif()
 
-install(TARGETS solver DESTINATION bin)
+# install(TARGETS solver DESTINATION bin)
+# install(TARGETS drift DESTINATION bin)

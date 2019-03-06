@@ -5,11 +5,11 @@
 boundary::boundary()
 {
   // make the field cage
-  double xLow = -1;
-  double xHigh = 1;
-  double yLow = -1;
-  double yHigh = 1;
-  double zLow = -0.2;
+  double xLow = -1.05;
+  double xHigh = 1.05;
+  double yLow = -1.05;
+  double yHigh = 1.05;
+  double zLow = -0.3;
   double zHigh = 1.8;
   
   double wall_thickness = 0.05;
@@ -20,7 +20,7 @@ boundary::boundary()
   volumes[nVolumes] = new volume(xLow, xHigh,
 				 yLow, yHigh,
 				 zHigh - wall_thickness, zHigh,
-				 constant(-0.55));
+				 constant(-0.3));
   nVolumes++;
   
   // make_field_cage(xLow, xHigh,
@@ -30,10 +30,14 @@ boundary::boundary()
   // 		  0.23, -0.273);
   
   make_wires(xLow, xHigh,
-	     yLow, yHigh,
-	     zLow, zHigh);  
-    
-  for ( uint i = 0; i < nVolumes; i++ ) {
+  	     yLow, yHigh,
+  	     zLow, zHigh);  
+
+  // make_pads(xLow, xHigh,
+  // 	    yLow, yHigh,
+  // 	    zLow, zHigh);
+  
+  for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> Xmin < Xmin ) {
       Xmin = volumes[i] -> Xmin;
     }
@@ -98,14 +102,15 @@ void boundary::make_wires(double xLow, double xHigh,
   double wire_pitch = 0.3;
   double wire_potential;
   for ( double x = -0.9; x < 0.9; x += wire_pitch ) {
-    for ( double z = 0; z < 0.6; z += wire_pitch ) {
-      if ( z == 0 ) {
+    for ( int row = 0; row < 3; row ++ ) {
+      double z = row*wire_pitch;
+      if ( row == 0 ) {
 	wire_potential = 0.23;
       }
-      else if ( z == 0.3 ) {
+      else if ( row == 1 ) {
 	wire_potential = 0;
       }
-      else if ( z == 0.6 ) {
+      else if ( row == 2 ) {
 	wire_potential = -0.11;
       }
       
@@ -152,7 +157,7 @@ void boundary::make_field_cage(double xLow, double xHigh,
 bool boundary::is_in_boundary(double x, double y, double z)
 {
   bool is_in_any = false;
-  for ( uint i = 0; i < nVolumes; i++ ) {
+  for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
       is_in_any = true;
     }
@@ -162,7 +167,7 @@ bool boundary::is_in_boundary(double x, double y, double z)
 
 double boundary::boundary_value(double x, double y, double z)
 {
-  for ( uint i = 0; i < nVolumes; i++ ) {
+  for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
       return volumes[i] -> V(x, y, z);
     }
