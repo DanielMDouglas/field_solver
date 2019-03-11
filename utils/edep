@@ -1,0 +1,100 @@
+from ROOT import TChain
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+import numpy as np
+from larcv import larcv
+
+ch0=TChain('sparse3d_mcst_tree')
+ch1=TChain('sparse3d_mcst_dx_tree')
+ch2=TChain('sparse3d_mcst_dedx_tree')
+
+for ch in [ch0,ch1,ch2]:
+    ch.AddFile('data/aho.root')
+    print ch.GetEntries()
+    ch.GetEntry(0)
+
+de_sparse3d = ch0.sparse3d_mcst_branch
+dx_sparse3d = ch1.sparse3d_mcst_dx_branch
+dedx_sparse3d = ch2.sparse3d_mcst_dedx_branch
+
+meta = de_sparse3d.meta()
+x_array  = np.array([meta.id_to_x_index(vox.id()) for vox in de_sparse3d.as_vector()])
+y_array  = np.array([meta.id_to_y_index(vox.id()) for vox in de_sparse3d.as_vector()])
+z_array  = np.array([meta.id_to_z_index(vox.id()) for vox in de_sparse3d.as_vector()])
+de_array = np.array([de.value() for de in de_sparse3d.as_vector()])
+dx_array = np.array([dx.value() for dx in dx_sparse3d.as_vector()])
+
+idx  = np.where(dx_array>0)
+de_array = de_array[idx]
+dx_array = dx_array[idx]
+dedx = de_array/dx_array 
+x_array = x_array[idx]
+y_array = y_array[idx]
+z_array = z_array[idx]
+
+# print de_array.mean(), dx_array.mean(), dedx.min(),dedx.max()
+# print x_array.min(), x_array.max()
+
+print dedx.shape
+print x_array.shape
+
+print sum(de_array)
+
+# fig, ax = plt.subplots(111, projection='3d')
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(x_array, y_array, z_array, c = de_array/np.max(de_array))
+plt.show()
+
+electrons = []
+
+reduceF = 1000.
+
+# bullshit numbers...
+# ...for now
+
+E = 0.5 #kV
+
+# recombination survival fraction
+def R(dE, dx):
+    # use ICARUS Birks form
+    AB = 0.800
+    kB = 0.0486
+    return AB/(1 + kB*dE/dx/E)
+    
+# ionization/excitation fraction
+f = 0.83
+
+# work functions
+w_ionize = 26.2e-6
+w_excite = 10.e-6
+
+# freed electron radius
+r0 = 2.5e-3
+
+pos_list = []
+
+for dEi, dxi, xi, yi, zi in zip(de_array, dx_array, x_array, y_array, z_array):
+    dedx = dEi/dxi
+
+    n_electrons = int(dEi*R(dEi, dxi)*f/w_ionize/reduceF)
+    n_ions = n_electrons
+    n_photons = dEi*(1-f)/w_excite + dEi*f*(1-R(dEi, dxi))/w_ionize
+
+    rvs = np.random.normal(loc = np.array([xi, yi, zi]),
+                           scale = r0,
+                           size = (n_electrons, 3))
+
+    print rvs.shape
+    pos_list.append(rvs)
+    
+electron_pos_array = np.concatenate(pos_list)
+
+print electron_pos_array.shape
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(*electron_pos_array.T)
+plt.show()
+
+
+v = mu*E
