@@ -12,12 +12,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # You can set WITH_GEANT4_UIVIS to OFF via the command line or ccmake/cmake-gui
 # to build a batch mode only executable
 #
-option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
-if(WITH_GEANT4_UIVIS)
-  find_package(Geant4 REQUIRED ui_all vis_all)
-else()
-  find_package(Geant4 REQUIRED)
-endif()
+# option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
+# if(WITH_GEANT4_UIVIS)
+
+#   find_package(Geant4 REQUIRED ui_all vis_all)
+# else()
+#   find_package(Geant4 REQUIRED)
+# endif()
 
 find_package(Threads)
 
@@ -28,7 +29,7 @@ find_package(ROOT REQUIRED COMPONENTS RIO Net)
 # Setup Geant4 include directories and compile definitions
 # Setup include directory for this project
 #
-include(${Geant4_USE_FILE})
+# include(${Geant4_USE_FILE})
 if(ROOT_FOUND)
   include_directories(${ROOT_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
 else()
@@ -48,13 +49,16 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 #
 
 add_executable( solver ${PROJECT_SOURCE_DIR}/src/solver.cxx ${sources} ${headers})
-target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( solver ${CMAKE_THREAD_LIBS_INIT} )
 
 add_executable( drift ${PROJECT_SOURCE_DIR}/src/drift.cxx ${sources} ${headers})
-target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( drift ${CMAKE_THREAD_LIBS_INIT} )
 
 add_executable( edep ${PROJECT_SOURCE_DIR}/src/edep.cxx ${sources} ${headers})
-target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( edep ${CMAKE_THREAD_LIBS_INIT} )
 
 if(ROOT_FOUND)
   target_link_libraries(solver ${ROOT_LIBRARIES})

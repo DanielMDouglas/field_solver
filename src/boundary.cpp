@@ -1,5 +1,3 @@
-#include <G4GDMLParser.hh>
-
 #include "boundary.h"
 
 boundary::boundary()
