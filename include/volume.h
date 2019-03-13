@@ -10,7 +10,9 @@ class volume
   double Xmin, Xmax;
   double Ymin, Ymax;
   double Zmin, Zmax;
- 
+
+  bool isSensitive = false;
+  
   volume(double, double, double, double, double, double, std::function<double (double, double, double)>);
   double get_voltage(double, double, double);
   bool is_in_boundary(double, double, double);

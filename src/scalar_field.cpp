@@ -25,9 +25,9 @@ scalarField::scalarField(std::vector <double> x,
 }
 
 scalarField::scalarField(std::vector <double> x,
-	     std::vector <double> y,
-	     std::vector <double> z,
-	     std::function <double (double, double, double)> f)
+			 std::vector <double> y,
+			 std::vector <double> z,
+			 std::function <double (double, double, double)> f)
 {
   xSize = x.size();
   ySize = y.size();

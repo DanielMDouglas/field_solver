@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "boundary.h"
 
 boundary::boundary()
@@ -10,15 +12,13 @@ boundary::boundary()
   double zLow = -0.3;
   double zHigh = 1.8;
   
-  double wall_thickness = 0.05;
+  double wall_thickness = 0.01;
   
-  // nVolumes = 0;
-
   // far cathode plane  
   volumes[nVolumes] = new volume(xLow, xHigh,
-				 yLow, yHigh,
-				 zHigh - wall_thickness, zHigh,
-				 constant(-0.3));
+  				 yLow, yHigh,
+  				 zHigh - wall_thickness, zHigh,
+  				 constant(-0.6));
   nVolumes++;
   
   // make_field_cage(xLow, xHigh,
@@ -27,13 +27,13 @@ boundary::boundary()
   // 		  wall_thickness,
   // 		  0.23, -0.273);
   
-  make_wires(xLow, xHigh,
-  	     yLow, yHigh,
-  	     zLow, zHigh);  
+  // make_wires(xLow, xHigh,
+  // 	     yLow, yHigh,
+  // 	     zLow, zHigh);  
 
-  // make_pads(xLow, xHigh,
-  // 	    yLow, yHigh,
-  // 	    zLow, zHigh);
+  make_pads(xLow, xHigh,
+  	    yLow, yHigh,
+  	    zLow, zHigh);
   
   for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> Xmin < Xmin ) {
@@ -63,11 +63,15 @@ void boundary::make_pads(double xLow, double xHigh,
 {
   double padSize = 0.2;
   double padThickness = 0.05;
-  double minSpacing = 0.1;
+  double minSpacing = 0.2;
   int nPadsPerRow = (xHigh - xLow - minSpacing)/(padSize + minSpacing);
   double spacing = (xHigh - xLow - nPadsPerRow*padSize)/(nPadsPerRow + 1);
-  double padPotential = 0.23;
+  double padPotential = 0.;
 
+  std::cout << "Setting up pads with size "
+	    << padSize << " and " << padSize + spacing
+	    << " pitch!" << std::endl;
+  
   // make the pads
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
@@ -77,18 +81,19 @@ void boundary::make_pads(double xLow, double xHigh,
 				     (yLow + spacing + padSize) + (padSize + spacing)*j,
 				     -padThickness/2, padThickness/2,
 				     constant(padPotential));
+      volumes[nVolumes] -> isSensitive = true;
       nVolumes++;
     }
   }
 
-  double shaperPotential = 0;
+  // double shaperPotential = 0;
   
-  // make the field shaper
-  volumes[nVolumes] = new volume(xLow, xHigh,
-  				 yLow, yHigh,
-  				 -0.025, 0.025,
-  				 constant(shaperPotential));
-  nVolumes++;
+  // // make the field shaper
+  // volumes[nVolumes] = new volume(xLow, xHigh,
+  // 				 yLow, yHigh,
+  // 				 -0.025, 0.025,
+  // 				 constant(shaperPotential));
+  // nVolumes++;
 }
 
 void boundary::make_wires(double xLow, double xHigh,

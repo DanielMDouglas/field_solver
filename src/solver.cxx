@@ -1,8 +1,17 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <signal.h>
+#include <cstring>
 
 #include "solver.h"
+
+volatile int sig_int = 0;
+
+void term(int signum)
+{
+  sig_int = 1;
+}
 
 void solve_field(boundary b, std::string startingSol = "none") {
   // make some initial guess for the solution
@@ -134,6 +143,11 @@ void solve_field(boundary b, std::string startingSol = "none") {
       }
     }
 
+    if ( sig_int ) {
+      std::cout << std::endl << "Recieved SIGTERM! Saving and quitting..." << std::endl;
+      break;
+    }
+    
     if ( iter % 100 == 0 ) {
       // print out the squared_diff between current iteration and previous iteration
       std::cout << iter << '\t'
@@ -167,6 +181,11 @@ void solve_field(boundary b, std::string startingSol = "none") {
 
 int main() {
 
+  struct sigaction action;
+  memset(&action, 0, sizeof(struct sigaction));
+  action.sa_handler = term;
+  sigaction(SIGINT, &action, NULL);
+  
   boundary detector;
   solve_field(detector);
   
