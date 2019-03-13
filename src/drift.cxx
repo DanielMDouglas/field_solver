@@ -70,20 +70,20 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
   if ( magE < xFit ) vd = magE*uFit;
   else if ( magE < 0.619 ) {
     vd = ((P1*(temperature-T0)+1)
-	  *(P3*magE*std::log(1+P4/magE) + P5*std::pow(magE, P6))
+	  *(P3*magE*std::log(1+P4/magE) + P5*pow(magE, P6))
 	  +P2*(temperature-T0));
   }
   else if ( magE < 0.699 ) {
     vd = 12.5*(magE - 0.619)*((P1W*(temperature-T0W)+1)
-			      *(P3W*magE*std::log(1+P4W/magE) + P5W*std::pow(magE, P6W))
+			      *(P3W*magE*std::log(1+P4W/magE) + P5W*pow(magE, P6W))
 			      +P2W*(temperature-T0W)) +
       12.5*(0.699 - magE)*((P1*(temperature-T0)+1)
-			   *(P3*magE*std::log(1+P4/magE) + P5*std::pow(magE, P6))
+			   *(P3*magE*std::log(1+P4/magE) + P5*pow(magE, P6))
 			   +P2*(temperature-T0));
   }
   else {
     vd = ((P1W*(temperature-T0W)+1)
-	  *(P3W*magE*std::log(1+P4W/magE) + P5W*std::pow(magE, P6W))
+	  *(P3W*magE*std::log(1+P4W/magE) + P5W*pow(magE, P6W))
 	  +P2W*(temperature-T0W));
   }
 
