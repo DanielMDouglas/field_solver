@@ -29,6 +29,7 @@ class scalarField
   double get(int, int, int);
   void print_to_file(std::string);
   double interpolate(std::vector <double>);
+  std::vector <double> interpolate_grad(std::vector <double>);
 };
 
 double squared_diff(scalarField, scalarField);

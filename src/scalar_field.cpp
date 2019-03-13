@@ -158,6 +158,8 @@ void scalarField::print_to_file(std::string filename)
 
 double scalarField::interpolate(std::vector <double> pos)
 {
+  std::vector <double> spacing = {0, 0, 0};
+  
   // get the 8 nearest points on the grid
   int i = 0;
   while ( x_space[i] < pos[0] ) {
@@ -165,6 +167,8 @@ double scalarField::interpolate(std::vector <double> pos)
   }
   int xLowInd = i-1;
   int xHighInd = i;
+
+  spacing[0] = x_space[xHighInd] - x_space[xLowInd];
   
   i = 0;
   while ( y_space[i] < pos[1] ) {
@@ -172,6 +176,8 @@ double scalarField::interpolate(std::vector <double> pos)
   }
   int yLowInd = i-1;
   int yHighInd = i;
+
+  spacing[1] = x_space[yHighInd] - x_space[yLowInd];
   
   i = 0;
   while ( z_space[i] < pos[2] ) {
@@ -180,24 +186,143 @@ double scalarField::interpolate(std::vector <double> pos)
   int zLowInd = i-1;
   int zHighInd = i;
 
-  // inverse distance weighting
-  double normalization = 0;
+  spacing[2] = x_space[zHighInd] - x_space[zLowInd];
+  
+  // linear interpolation
   double sum = 0;
+  double prod;
   for ( int i: {xLowInd, xHighInd} ) {
     for ( int j: {yLowInd, yHighInd} ) {
       for ( int k: {zLowInd, zHighInd} ) {
-	std::vector <double> edgePos = {x_space[i], y_space[j], z_space[k]};
-	double weight = pow(mag(pos - edgePos), -1);
-
-	sum += weight*get(i, j, k);
-	normalization += weight;
-	// std::cout << get(i, j, k) << std::endl;
+	std::vector <double> vertexPos = {x_space[i], y_space[j], z_space[k]};
+	prod = get(i, j, k);
+	for ( int n: {0, 1, 2} ) {
+	  prod *= spacing[n] - abs( pos[n] - vertexPos[n] );
+	}
+	sum += prod;
       }
     }
   }
-  sum /= normalization;
-  
+
+  for ( int n: {0, 1, 2} ) {
+    sum /= spacing[n];
+  }
+
   return sum;
+  
+  // inverse distance weighting
+  // double normalization = 0;
+  // double sum = 0;
+  // for ( int i: {xLowInd, xHighInd} ) {
+  //   for ( int j: {yLowInd, yHighInd} ) {
+  //     for ( int k: {zLowInd, zHighInd} ) {
+  // 	std::vector <double> edgePos = {x_space[i], y_space[j], z_space[k]};
+  // 	double weight = pow(mag(pos - edgePos), -1);
+
+  // 	sum += weight*get(i, j, k);
+  // 	normalization += weight;
+  // 	// std::cout << get(i, j, k) << std::endl;
+  //     }
+  //   }
+  // }
+  // sum /= normalization;
+  
+  // return sum;
+}
+
+std::vector <double> scalarField::interpolate_grad(std::vector <double> pos)
+{
+  std::vector <double> spacing = {0, 0, 0};
+
+  std::vector <double> grad = {0, 0, 0};
+  
+  // get the 8 nearest points on the grid
+  int i = 0;
+  while ( x_space[i] < pos[0] ) {
+    i++;
+  }
+  int xLowInd = i-1;
+  int xHighInd = i;
+
+  spacing[0] = x_space[xHighInd] - x_space[xLowInd];
+  
+  i = 0;
+  while ( y_space[i] < pos[1] ) {
+    i++;
+  }
+  int yLowInd = i-1;
+  int yHighInd = i;
+
+  spacing[1] = x_space[yHighInd] - x_space[yLowInd];
+  
+  i = 0;
+  while ( z_space[i] < pos[2] ) {
+    i++;
+  }
+  int zLowInd = i-1;
+  int zHighInd = i;
+
+  spacing[2] = x_space[zHighInd] - x_space[zLowInd];
+  
+  // x grad
+  // interpolate in y and z
+  double weight;
+  double highProd;
+  double lowProd;
+  for ( int j: {yLowInd, yHighInd} ) {
+    for ( int k: {zLowInd, zHighInd} ) {
+      std::vector <double> vertexPos = {0, y_space[j], z_space[k]};
+      highProd = get(xHighInd, j, k);
+      lowProd = get(xLowInd, j, k);
+      for ( int n: {1, 2} ) {
+	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+	highProd *= weight;
+	lowProd *= weight;
+      }
+      grad[0] += highProd;
+      grad[0] -= lowProd;
+    }
+  }
+
+  // y grad
+  // interpolate in x and z
+  for ( int i: {xLowInd, xHighInd} ) {
+    for ( int k: {zLowInd, zHighInd} ) {
+      std::vector <double> vertexPos = {x_space[i], 0, z_space[k]};
+      highProd = get(i, yHighInd, k);
+      lowProd = get(i, yLowInd, k);
+      for ( int n: {0, 2} ) {
+	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+	highProd *= weight;
+	lowProd *= weight;
+      }
+      grad[1] += highProd;
+      grad[1] -= lowProd;
+    }
+  }
+
+  // z grad
+  // interpolate in x and y
+  for ( int i: {xLowInd, xHighInd} ) {
+    for ( int j: {yLowInd, yHighInd} ) {
+      std::vector <double> vertexPos = {x_space[i], y_space[j], 0};
+      highProd = get(i, j, zHighInd);
+      lowProd = get(i, j, zLowInd);
+      for ( int n: {0, 1} ) {
+	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+	highProd *= weight;
+	lowProd *= weight;
+      }
+      grad[2] += highProd;
+      grad[2] -= lowProd;
+    }
+  }
+
+  for ( int n: {0, 1, 2} ) {
+    grad = grad*(1./spacing[n]);
+  }
+
+  return grad;
 }
 
 double squared_diff(scalarField a, scalarField b)
