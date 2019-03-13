@@ -4,7 +4,7 @@
 
 #include "solver.h"
 
-void solve_field(boundary b) {
+void solve_field(boundary b, std::string startingSol = "none") {
   // make some initial guess for the solution
   // assume a linear field
   b.Zmin = -0.3;
@@ -19,16 +19,24 @@ void solve_field(boundary b) {
   scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
   scalarField is_b = scalarField(b, nPointsX, nPointsY, nPointsZ, "bool");
   
-  double intercept = b.boundary_value(0, 0, 0);
-  double xSlope = (b.boundary_value(b.Xmax, 0, 0) - b.boundary_value(b.Xmin, 0, 0))/(b.Xmax - b.Xmin);
-  double ySlope = (b.boundary_value(0, b.Ymax, 0) - b.boundary_value(0, b.Ymin, 0))/(b.Ymax - b.Ymin);
-  double zSlope = (b.boundary_value(0, 0, b.Zmax) - b.boundary_value(0, 0, b.Zmin))/(b.Zmax - b.Zmin);
-
   std::vector <double> x_axis = linspace(b.Xmin, b.Xmax, nPointsX);
   std::vector <double> y_axis = linspace(b.Ymin, b.Ymax, nPointsY);
   std::vector <double> z_axis = linspace(b.Zmin, b.Zmax, nPointsZ);
 
-  scalarField solution = scalarField(x_axis, y_axis, z_axis, linear(intercept, xSlope, ySlope, zSlope));
+  scalarField solution = scalarField(x_axis, y_axis, z_axis, constant(0.));
+  if ( startingSol == "none" ) {
+    double intercept = b.boundary_value(0, 0, 0);
+    double xSlope = (b.boundary_value(b.Xmax, 0, 0) - b.boundary_value(b.Xmin, 0, 0))/(b.Xmax - b.Xmin);
+    double ySlope = (b.boundary_value(0, b.Ymax, 0) - b.boundary_value(0, b.Ymin, 0))/(b.Ymax - b.Ymin);
+    double zSlope = (b.boundary_value(0, 0, b.Zmax) - b.boundary_value(0, 0, b.Zmin))/(b.Zmax - b.Zmin);
+
+    solution = scalarField(x_axis, y_axis, z_axis,
+			   linear(intercept, xSlope, ySlope, zSlope));
+  }
+  else {
+    solution = scalarField(startingSol);
+  }
+
   scalarField tempGrid = scalarField(x_axis, y_axis, z_axis, constant(0.));
   
   solution.print_to_file("initial.dat");
