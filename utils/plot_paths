@@ -26,35 +26,53 @@ def plot_wires():
 
 def plot_pads(ax):
     padSize = 0.2
-    minSpacing = 0.1
+    padThickness = 0.05
+    spacing = 0.2
     xLow = -1
     xHigh = 1
-    nPadsPerRow = int((xHigh - xLow - minSpacing)/(padSize + minSpacing))
-    spacing = (xHigh - xLow - nPadsPerRow*padSize)/(nPadsPerRow + 1)
+    nPadsPerRow = int((xHigh - xLow)/(padSize + spacing))
+    # pads
     for i in range(nPadsPerRow):
-        rect = patches.Rectangle((xLow + spacing + (padSize + spacing)*i,
-                                  -0.025),
+        rect = patches.Rectangle((xLow + spacing/2 + (padSize + spacing)*i,
+                                  -padThickness/2),
                                  padSize,
-                                 0.05,
+                                 padThickness,
                                  edgecolor = 'r',
                                  facecolor = 'r')
         ax.add_patch(rect)
+    # # left half-space
+    # rect = patches.Rectangle((xLow,
+    #                           -padThickness/2),
+    #                          spacing/2,
+    #                          padThickness,
+    #                          edgecolor = 'y',
+    #                          facecolor = 'y')
+    # ax.add_patch(rect)
+    # # right half-space
+    # rect = patches.Rectangle((xHigh - spacing/2,
+    #                           -padThickness/2),
+    #                          spacing/2,
+    #                          padThickness,
+    #                          edgecolor = 'y',
+    #                          facecolor = 'y')
+    # ax.add_patch(rect)
+        
+    # for i in range(nPadsPerRow-1):
+    #     rect = patches.Rectangle((xLow + spacing/2 + padSize + (padSize + spacing)*i,
+    #                               -padThickness/2),
+    #                              spacing,
+    #                              padThickness,
+    #                              edgecolor = 'y',
+    #                              facecolor = 'y')
+    #     ax.add_patch(rect)
 
-        rect = patches.Rectangle((xLow + (padSize + spacing)*i,
-                                  -0.025),
-                                 spacing,
-                                 0.05,
-                                 edgecolor = 'y',
-                                 facecolor = 'y')
-        ax.add_patch(rect)
-
-    rect = patches.Rectangle((xLow + spacing + padSize + (padSize + spacing)*i,
-                              -0.025),
-                             spacing,
-                             0.05,
-                             edgecolor = 'y',
-                             facecolor = 'y')
-    ax.add_patch(rect)
+    # rect = patches.Rectangle((xLow + spacing + padSize + (padSize + spacing)*i,
+    #                           -0.025),
+    #                          spacing,
+    #                          0.05,
+    #                          edgecolor = 'y',
+    #                          facecolor = 'y')
+    # ax.add_patch(rect)
 
 
 if __name__ == '__main__':
@@ -71,8 +89,8 @@ if __name__ == '__main__':
         # plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
         plt.plot(x, z, c = 'blue')
         
-    # plot_pads(ax)
-    plot_wires()
+    plot_pads(ax)
+    # plot_wires()
     
     plt.xlabel(r'x [cm]')
     plt.ylabel(r'z [cm]')

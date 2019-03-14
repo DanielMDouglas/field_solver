@@ -16,11 +16,13 @@ class boundary
   double Xmin, Xmax = 0;
   double Ymin, Ymax = 0;
   double Zmin, Zmax = 0;
+  bool periodicX = false;
+  bool periodicY = false;
+  bool periodicZ = false;
   
-  boundary();
-  void make_pads(double, double,
-		 double, double,
-		 double, double);
+  boundary(std::string);
+  void make_bulkPix();
+  void make_bulkPix_weighting();
   void make_wires(double, double,
 		  double, double,
 		  double, double);

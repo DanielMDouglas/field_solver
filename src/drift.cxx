@@ -7,14 +7,14 @@
 
 #include "drift.h"
 
-const double dt = 1.e-3; // us
+const double dt = 1.e-4; // us
 
 const int max_iter = 1e5;
 const double ds = 0.01; // differentiation distance
 
-std::vector <double> E(std::vector <double> pos, scalarField V)
+std::vector <double> E(std::vector <double> pos, scalarField * V)
 {
-  return -1*V.interpolate_grad(pos);
+  return -1*V -> interpolate_grad(pos);
 }
 
 std::vector <double> driftV(std::vector <double> eField, double temperature)
@@ -92,7 +92,7 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
   return -vd*dir; // cm/us
 }
 
-path drift_path(std::vector <double> init_pos, scalarField V, boundary b)
+path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
 {
   double t = 0;
   path trajectory = path(dt);
@@ -136,7 +136,7 @@ path drift_path(std::vector <double> init_pos, scalarField V, boundary b)
   return trajectory;
 }
 
-void drift_and_save(double xi, scalarField potential, boundary detector)
+void drift_and_save(double xi, scalarField * potential, boundary detector)
 {
   path trajectory = drift_path(std::vector <double> {xi, 0.15, 0.8}, potential, detector);
   std::ostringstream stringStream;
@@ -146,13 +146,12 @@ void drift_and_save(double xi, scalarField potential, boundary detector)
 
 int main()
 {
-  scalarField potential = scalarField("wire_cathode_300V.dat");
-  boundary detector;
-  detector.Zmin = -0.2;
+  // scalarField potential = scalarField("wire_cathode_300V.dat");
+  scalarField * potential = new scalarField("final.dat");
+  boundary detector ("bulkPix");
   
   const int nPaths = 50;
 
-  // std::vector <std::thread> threads {nPaths};
   std::thread * threads [nPaths];
   
   std::vector <double> xi_space = linspace(-0.9, 0.9, nPaths);

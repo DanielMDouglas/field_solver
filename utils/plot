@@ -56,12 +56,14 @@ if __name__ == '__main__':
         u, v, selec = choose_slice(x, y, z, values, choice_string)
 
         Vmax = np.max(selec)
-    
+        Vmin = np.min(selec)
+        
         plt.figure()
         cmesh = plt.pcolormesh(v, u, selec.T, cmap = 'Blues')
-        cb = plt.colorbar(ticks = [0, Vmax])
-        cmesh.set_clim(vmin=0, vmax=Vmax)
-        cb.ax.set_yticklabels([0, r'$V_{max}$'])
+        cb = plt.colorbar(ticks = [Vmin, Vmax])
+        cb.set_label(r'Electrostatic Potential [kV]')
+        # cmesh.set_clim(vmin=0, vmax=Vmax)
+        # cb.ax.set_yticklabels([0, r'$V_{max}$'])
 
         plt.contour(v, u, selec.T, 20)
         

@@ -2,70 +2,41 @@
 
 #include "boundary.h"
 
-boundary::boundary()
+boundary::boundary(std::string which="bulkPix")
 {
-  // make the field cage
-  double xLow = -1.05;
-  double xHigh = 1.05;
-  double yLow = -1.05;
-  double yHigh = 1.05;
-  double zLow = -0.3;
+  if ( which == "bulkPix" ) {
+    make_bulkPix();
+  }
+  else if ( which == "bulkPix_weighting" ) {
+    make_bulkPix_weighting();
+  }
+}
+
+void boundary::make_bulkPix()
+{
+  periodicX = true;
+  periodicY = true;
+    
+  double xLow = -1.;
+  double xHigh = 1.;
+  double yLow = -1.;
+  double yHigh = 1.;
+  double zLow = -0.2;
   double zHigh = 1.8;
   
   double wall_thickness = 0.01;
   
   // far cathode plane  
   volumes[nVolumes] = new volume(xLow, xHigh,
-  				 yLow, yHigh,
-  				 zHigh - wall_thickness, zHigh,
-  				 constant(-0.6));
+				 yLow, yHigh,
+				 zHigh - wall_thickness, zHigh,
+				 constant(-0.6));
   nVolumes++;
   
-  // make_field_cage(xLow, xHigh,
-  // 		  yLow, yHigh,
-  // 		  1.0, zHigh,
-  // 		  wall_thickness,
-  // 		  0.23, -0.273);
-  
-  // make_wires(xLow, xHigh,
-  // 	     yLow, yHigh,
-  // 	     zLow, zHigh);  
-
-  make_pads(xLow, xHigh,
-  	    yLow, yHigh,
-  	    zLow, zHigh);
-  
-  for ( int i = 0; i < nVolumes; i++ ) {
-    if ( volumes[i] -> Xmin < Xmin ) {
-      Xmin = volumes[i] -> Xmin;
-    }
-    if ( volumes[i] -> Xmax > Xmax ) {
-      Xmax = volumes[i] -> Xmax;
-    }
-    if ( volumes[i] -> Ymin < Ymin ) {
-      Ymin = volumes[i] -> Ymin;
-    }
-    if ( volumes[i] -> Ymax > Ymax ) {
-      Ymax = volumes[i] -> Ymax;
-    }
-    if ( volumes[i] -> Zmin < Zmin ) {
-      Zmin = volumes[i] -> Zmin;
-    }
-    if ( volumes[i] -> Zmax > Zmax ) {
-      Zmax = volumes[i] -> Zmax;
-    }
-  }
-}
-
-void boundary::make_pads(double xLow, double xHigh,
-			 double yLow, double yHigh,
-			 double zLow, double zHigh)
-{
   double padSize = 0.2;
   double padThickness = 0.05;
-  double minSpacing = 0.2;
-  int nPadsPerRow = (xHigh - xLow - minSpacing)/(padSize + minSpacing);
-  double spacing = (xHigh - xLow - nPadsPerRow*padSize)/(nPadsPerRow + 1);
+  double spacing = 0.2;
+  int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
   double padPotential = 0.;
 
   std::cout << "Setting up pads with size "
@@ -75,10 +46,10 @@ void boundary::make_pads(double xLow, double xHigh,
   // make the pads
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
-      volumes[nVolumes] = new volume(xLow + spacing + (padSize + spacing)*i,
-				     (xLow + spacing + padSize) + (padSize + spacing)*i,
-				     yLow + spacing + (padSize + spacing)*j,
-				     (yLow + spacing + padSize) + (padSize + spacing)*j,
+      volumes[nVolumes] = new volume(xLow + spacing/2 + (padSize + spacing)*i,
+				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
+				     yLow + spacing/2 + (padSize + spacing)*j,
+				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
 				     -padThickness/2, padThickness/2,
 				     constant(padPotential));
       volumes[nVolumes] -> isSensitive = true;
@@ -86,14 +57,71 @@ void boundary::make_pads(double xLow, double xHigh,
     }
   }
 
-  // double shaperPotential = 0;
+  Xmin = xLow;
+  Xmax = xHigh;
+  Ymin = yLow;
+  Ymax = yHigh;
+  Zmin = zLow;
+  Zmax = zHigh;
+}
+
+void boundary::make_bulkPix_weighting()
+{
+  // periodicX = true;
+  // periodicY = true;
+    
+  double xLow = -1.;
+  double xHigh = 1.;
+  double yLow = -1.;
+  double yHigh = 1.;
+  double zLow = -0.2;
+  double zHigh = 1.8;
   
-  // // make the field shaper
-  // volumes[nVolumes] = new volume(xLow, xHigh,
-  // 				 yLow, yHigh,
-  // 				 -0.025, 0.025,
-  // 				 constant(shaperPotential));
-  // nVolumes++;
+  double wall_thickness = 0.01;
+  
+  // far cathode plane  
+  volumes[nVolumes] = new volume(xLow, xHigh,
+				 yLow, yHigh,
+				 zHigh - wall_thickness, zHigh,
+				 constant(0));
+  nVolumes++;
+  
+  double padSize = 0.2;
+  double padThickness = 0.05;
+  double spacing = 0.2;
+  int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
+  double padPotential;
+
+  std::cout << "Setting up pads with size "
+	    << padSize << " and " << padSize + spacing
+	    << " pitch!" << std::endl;
+  
+  // make the pads
+  for ( int i = 0; i < nPadsPerRow; i++ ) {
+    for ( int j = 0; j < nPadsPerRow; j++ ) {
+      if ( ( i == 1 ) and ( j == 1 ) ) {
+	padPotential = 1;
+      }
+      else {
+	padPotential = 0;
+      }
+      volumes[nVolumes] = new volume(xLow + spacing/2 + (padSize + spacing)*i,
+				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
+				     yLow + spacing/2 + (padSize + spacing)*j,
+				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
+				     -padThickness/2, padThickness/2,
+				     constant(padPotential));
+      volumes[nVolumes] -> isSensitive = true;
+      nVolumes++;
+    }
+  }
+
+  Xmin = xLow;
+  Xmax = xHigh;
+  Ymin = yLow;
+  Ymax = yHigh;
+  Zmin = zLow;
+  Zmax = zHigh;
 }
 
 void boundary::make_wires(double xLow, double xHigh,

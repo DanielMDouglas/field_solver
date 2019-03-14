@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <signal.h>
 #include <cstring>
@@ -7,23 +8,58 @@
 #include "solver.h"
 
 volatile int sig_int = 0;
+std::string startingSol = "none";
+std::string outFileName = "final.dat";
+std::string geom = "bulkPix";
+int nIter = 100000;
+double tolerance = 1.e-15;
+
+void handleOpts(int argc, char const *argv[])
+{
+  int opt = 1;
+  std::stringstream optValue;
+  std::stringstream argValue;
+  while ( opt < argc ) {
+    optValue << argv[opt];
+    argValue << argv[++opt];
+    if ( optValue.str() == "-i" ) {
+      argValue >> startingSol;
+    }
+    if ( optValue.str() == "-o" ) {
+      argValue >> outFileName;
+    }
+    if ( optValue.str() == "-g" ) {
+      argValue >> geom;
+    }
+    if ( optValue.str() == "-n" ) {
+      argValue >> nIter;
+    }
+    if ( optValue.str() == "-t" ) {
+      argValue >> tolerance;
+    }
+    opt++;
+  }
+
+  std::cout << "Using arguments: \n"
+	    << "inFile:     " << startingSol << '\n'
+	    << "outFile:    " << outFileName << '\n'
+	    << "geometry:   " << geom << '\n'
+	    << "max # iter: " << nIter << '\n'
+	    << "threshold:  " << tolerance << std::endl;
+}
 
 void term(int signum)
 {
   sig_int = 1;
 }
 
-void solve_field(boundary b, std::string startingSol = "none") {
+void solve_field(boundary b) {
   // make some initial guess for the solution
   // assume a linear field
-  b.Zmin = -0.3;
   
-  int nPointsX = 120;
-  int nPointsY = 120;
-  int nPointsZ = 120;
-  
-  int nIter = 10000;
-  double tolerance = 1.e-10;
+  int nPointsX = 200;
+  int nPointsY = 200;
+  int nPointsZ = 200;  
   
   scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
   scalarField is_b = scalarField(b, nPointsX, nPointsY, nPointsZ, "bool");
@@ -48,8 +84,6 @@ void solve_field(boundary b, std::string startingSol = "none") {
 
   scalarField tempGrid = scalarField(x_axis, y_axis, z_axis, constant(0.));
   
-  solution.print_to_file("initial.dat");
-
   // set initial boundary values
   // these values don't get updated
   for ( int i = 0; i < nPointsX; i++ ) {
@@ -63,10 +97,6 @@ void solve_field(boundary b, std::string startingSol = "none") {
       }
     }
   }
-
-  bool periodicX = true;
-  bool periodicY = true;
-  bool periodicZ = false;
   
   for ( int iter = 0; iter < nIter; iter++ ) {
     // set tempGrid to the average of the neighboring cells
@@ -81,7 +111,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicX ) {
+	      if ( b.periodicX ) {
 		sum += solution.get(nPointsX-1, j, k);
 		weight += 1;
 	      }
@@ -91,7 +121,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicX ) {
+	      if ( b.periodicX ) {
 		sum += solution.get(0, j, k);
 		weight += 1;
 	      }
@@ -101,7 +131,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicY ) {
+	      if ( b.periodicY ) {
 		sum += solution.get(i, nPointsY-1, k);
 		weight += 1;
 	      }
@@ -111,7 +141,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicY ) {
+	      if ( b.periodicY ) {
 		sum += solution.get(i, 0, k);
 		weight += 1;
 	      }
@@ -121,7 +151,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicZ ) {
+	      if ( b.periodicZ ) {
 		sum += solution.get(i, j, nPointsZ-1);
 		weight += 1;
 	      }
@@ -131,7 +161,7 @@ void solve_field(boundary b, std::string startingSol = "none") {
 	      weight += 1;
 	    }
 	    else {
-	      if ( periodicZ ) {
+	      if ( b.periodicZ ) {
 		sum += solution.get(i, j, 0);
 		weight += 1;
 	      }
@@ -174,19 +204,18 @@ void solve_field(boundary b, std::string startingSol = "none") {
 
   std::cout << "final stepwise difference: " << squared_diff(solution, tempGrid, is_b) << std::endl;
   
-  solution.print_to_file("final.dat");
-  vectorField Esol = vectorField(solution, "grad");
-  Esol.print_to_file("final_gradient.dat");
+  solution.print_to_file(outFileName);
 }
 
-int main() {
+int main(int argc, char const *argv[]) {
+  handleOpts(argc, argv);
 
   struct sigaction action;
   memset(&action, 0, sizeof(struct sigaction));
   action.sa_handler = term;
   sigaction(SIGINT, &action, NULL);
   
-  boundary detector;
+  boundary detector (geom);
   solve_field(detector);
   
   return 0;
