@@ -2,13 +2,16 @@
 
 #include "boundary.h"
 
-boundary::boundary(std::string which="bulkPix")
+boundary::boundary(std::string which)
 {
   if ( which == "bulkPix" ) {
     make_bulkPix();
   }
-  else if ( which == "bulkPix_weighting" ) {
-    make_bulkPix_weighting();
+  else if ( which == "bulkPixWeighting" ) {
+    make_bulkPixWeighting();
+  }
+  else if ( which == "bulkWires" ) {
+    make_bulkWires();
   }
 }
 
@@ -65,7 +68,7 @@ void boundary::make_bulkPix()
   Zmax = zHigh;
 }
 
-void boundary::make_bulkPix_weighting()
+void boundary::make_bulkPixWeighting()
 {
   // periodicX = true;
   // periodicY = true;
@@ -124,12 +127,36 @@ void boundary::make_bulkPix_weighting()
   Zmax = zHigh;
 }
 
-void boundary::make_wires(double xLow, double xHigh,
-			  double yLow, double yHigh,
-			  double zLow, double zHigh)
+void boundary::make_bulkWires()
 {
-  // wires!
-  double wire_rad = 0.025;
+  periodicX = true;
+  periodicY = true;
+    
+  double xLow = -1.05;
+  double xHigh = 1.05;
+  double yLow = -1.05;
+  double yHigh = 1.05;
+  double zLow = -0.25;
+  double zHigh = 1.85;
+  
+  double wall_thickness = 0.01;
+  
+  // far cathode plane  
+  volumes[nVolumes] = new volume(xLow, xHigh,
+				 yLow, yHigh,
+				 zHigh - wall_thickness, zHigh,
+				 constant(-0.4376));
+  nVolumes++;
+
+  // backstop plane
+  volumes[nVolumes] = new volume(xLow, xHigh,
+				 yLow, yHigh,
+				 zLow, zLow + wall_thickness,
+				 constant(0.22425));
+  nVolumes++;
+
+  
+  double wire_rad = 0.01;
   double wire_pitch = 0.3;
   double wire_potential;
   for ( double x = -0.9; x < 0.9; x += wire_pitch ) {
@@ -152,6 +179,13 @@ void boundary::make_wires(double xLow, double xHigh,
       nVolumes++;
     }
   }
+
+  Xmin = xLow;
+  Xmax = xHigh;
+  Ymin = yLow;
+  Ymax = yHigh;
+  Zmin = zLow;
+  Zmax = zHigh;
 }
 
 void boundary::make_field_cage(double xLow, double xHigh,

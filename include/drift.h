@@ -7,10 +7,7 @@
 #include "path.h"
 #include "boundary.h"
 #include "utils.h"
-
-std::vector <double> E(std::vector <double>, scalarField*);
-
-std::vector <double> driftV(std::vector <double>, double);
+#include "physics.h"
 
 path drift_path(std::vector <double>, scalarField*, boundary);
 

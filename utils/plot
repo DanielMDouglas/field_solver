@@ -42,9 +42,10 @@ def choose_slice(x, y, z, values, choice):
     return u, v, selec
 
 if __name__ == '__main__':
-    infileNames = sys.argv[1:-1]
-    choice_string = sys.argv[-1]
-
+    infileNames = sys.argv[1:-2]
+    choice_string = sys.argv[-2]
+    title = sys.argv[-1]
+    
     if not infileNames:
         print "Please specify the file to plot from!"
         print "Usage: plot [fieldData.dat]"
@@ -55,18 +56,15 @@ if __name__ == '__main__':
         x, y, z, values = read_csv(infileName)
         u, v, selec = choose_slice(x, y, z, values, choice_string)
 
-        Vmax = np.max(selec)
-        Vmin = np.min(selec)
+        print Vmax, Vmin
         
         plt.figure()
         cmesh = plt.pcolormesh(v, u, selec.T, cmap = 'Blues')
-        cb = plt.colorbar(ticks = [Vmin, Vmax])
-        cb.set_label(r'Electrostatic Potential [kV]')
-        # cmesh.set_clim(vmin=0, vmax=Vmax)
-        # cb.ax.set_yticklabels([0, r'$V_{max}$'])
+        cb = plt.colorbar()
 
         plt.contour(v, u, selec.T, 20)
         
+        plt.title(title)
         plt.xlabel(r'$x$ [cm]')
         plt.ylabel(r'$z$ [cm]')
 

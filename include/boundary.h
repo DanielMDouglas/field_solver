@@ -22,10 +22,8 @@ class boundary
   
   boundary(std::string);
   void make_bulkPix();
-  void make_bulkPix_weighting();
-  void make_wires(double, double,
-		  double, double,
-		  double, double);
+  void make_bulkPixWeighting();
+  void make_bulkWires();
   void make_field_cage(double, double,
 		       double, double,
 		       double, double,

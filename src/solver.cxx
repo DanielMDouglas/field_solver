@@ -14,14 +14,15 @@ std::string geom = "bulkPix";
 int nIter = 100000;
 double tolerance = 1.e-15;
 
-void handleOpts(int argc, char const *argv[])
+void handleOpts(int argc, char const * argv[])
 {
   int opt = 1;
-  std::stringstream optValue;
-  std::stringstream argValue;
   while ( opt < argc ) {
+    std::stringstream optValue;
+    std::stringstream argValue;
     optValue << argv[opt];
     argValue << argv[++opt];
+    
     if ( optValue.str() == "-i" ) {
       argValue >> startingSol;
     }
@@ -37,6 +38,7 @@ void handleOpts(int argc, char const *argv[])
     if ( optValue.str() == "-t" ) {
       argValue >> tolerance;
     }
+
     opt++;
   }
 
@@ -53,7 +55,8 @@ void term(int signum)
   sig_int = 1;
 }
 
-void solve_field(boundary b) {
+void solve_field(boundary b)
+{
   // make some initial guess for the solution
   // assume a linear field
   
@@ -207,7 +210,8 @@ void solve_field(boundary b) {
   solution.print_to_file(outFileName);
 }
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char const * argv[])
+{
   handleOpts(argc, argv);
 
   struct sigaction action;
