@@ -89,8 +89,8 @@ if __name__ == '__main__':
         # plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
         plt.plot(x, z, c = 'blue')
         
-    plot_pads(ax)
-    # plot_wires()
+    # plot_pads(ax)
+    plot_wires()
     
     plt.xlabel(r'x [cm]')
     plt.ylabel(r'z [cm]')

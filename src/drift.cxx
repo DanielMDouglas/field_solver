@@ -7,68 +7,52 @@
 
 #include "drift.h"
 
-const double dt = 1.e-4; // us
-const int max_iter = 1e5;
+std::string fieldFileName = "none";
+std::string geom = "bulkPix";
 
-path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
+void handleOpts(int argc, char const * argv[])
 {
-  double t = 0;
-  path trajectory = path(dt);
-  std::vector <double> pos = init_pos; // cm
-  
-  std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
-  
-  while ( true ) {
-    trajectory.steps.push_back(pos);
-    if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
-	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
-	 (pos[2] < b.Zmin) or (pos[2] > b.Zmax) ) {
-      std::cout << "particle left boundary!" << std::endl;
-      trajectory.fate = "OOB";
-      break;
+  int opt = 0;
+  while ( opt < argc ) {
+    std::stringstream optValue;
+    std::stringstream argValue;
+    optValue << argv[++opt];
+    argValue << argv[++opt];
+    
+    if ( optValue.str() == "-f" ) {
+      argValue >> fieldFileName;
     }
-    else if ( t >= dt*max_iter ) {
-      std::cout << "particle timed out!" << std::endl;
-      trajectory.fate = "OOT";
-      break;
-    }
-    else if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
-      std::cout << "particle terminated in a volume!" << std::endl;
-      trajectory.fate = "volume";
-      break;
-    }
-    else {
-      // assume T = boiling point of Ar for now
-      pos = pos + driftV(E(pos, V), 87.302)*dt;
-      t += dt;
+    if ( optValue.str() == "-g" ) {
+      argValue >> geom;
     }
   }
+
+  if ( fieldFileName == "none" ) {
+    std::cout << "Need a weighting field file!" << std::endl;
+    exit(1);
+  }
   
-  trajectory.arrivalTime = t;
-
-  std::cout << "Final pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
-  std::cout << "Arrival time: " << t << std::endl;
-  std::cout << "Fate: " << trajectory.fate << std::endl;
-  std::cout << std::endl;
-
-  return trajectory;
+  std::cout << "Using arguments: \n"
+	    << "potential field:  " << fieldFileName << '\n'
+	    << "geom:             " << geom << std::endl;
 }
 
 void drift_and_save(double xi, scalarField * potential, boundary detector)
 {
-  path trajectory = drift_path(std::vector <double> {xi, 0.15, 0.8}, potential, detector);
+  path trajectory = drift_path(std::vector <double> {xi, 0., 1.75}, potential, detector);
   std::ostringstream stringStream;
   stringStream << "paths/drift_from_" << xi << ".dat";
   trajectory.print_to_file(stringStream.str());
 }
 
-int main()
+int main(int argc, char const * argv[])
 {
-  // scalarField potential = scalarField("wire_cathode_300V.dat");
-  scalarField * potential = new scalarField("final.dat");
-  boundary detector ("bulkPix");
+  handleOpts(argc, argv);
   
-  const int nPaths = 50;
+  scalarField * potential = new scalarField(fieldFileName);
+  boundary detector (geom);
+  
+  const int nPaths = 100;
 
   std::thread * threads [nPaths];
   

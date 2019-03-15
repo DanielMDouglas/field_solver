@@ -64,11 +64,16 @@ add_executable( efield ${PROJECT_SOURCE_DIR}/src/efield.cxx ${sources} ${headers
 # target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( efield ${CMAKE_THREAD_LIBS_INIT} )
 
+add_executable( induction ${PROJECT_SOURCE_DIR}/src/induction.cxx ${sources} ${headers})
+# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( induction ${CMAKE_THREAD_LIBS_INIT} )
+
 if(ROOT_FOUND)
   target_link_libraries(solver ${ROOT_LIBRARIES})
   target_link_libraries(drift ${ROOT_LIBRARIES})
   target_link_libraries(edep ${ROOT_LIBRARIES})
   target_link_libraries(efield ${ROOT_LIBRARIES})
+  target_link_libraries(induction ${ROOT_LIBRARIES})
 # else()
 #   target_link_libraries(solver ${Geant4_LIBRARIES})
 #   target_link_libraries(drift ${Geant4_LIBRARIES})

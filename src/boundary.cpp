@@ -20,12 +20,12 @@ void boundary::make_bulkPix()
   periodicX = true;
   periodicY = true;
     
-  double xLow = -1.;
-  double xHigh = 1.;
-  double yLow = -1.;
-  double yHigh = 1.;
+  double xLow = -1.4;
+  double xHigh = 1.4;
+  double yLow = -1.4;
+  double yHigh = 1.4;
   double zLow = -0.2;
-  double zHigh = 1.8;
+  double zHigh = 2.6;
   
   double wall_thickness = 0.01;
   
@@ -73,12 +73,12 @@ void boundary::make_bulkPixWeighting()
   // periodicX = true;
   // periodicY = true;
     
-  double xLow = -1.;
-  double xHigh = 1.;
-  double yLow = -1.;
-  double yHigh = 1.;
+  double xLow = -1.4;
+  double xHigh = 1.4;
+  double yLow = -1.4;
+  double yHigh = 1.4;
   double zLow = -0.2;
-  double zHigh = 1.8;
+  double zHigh = 2.6;
   
   double wall_thickness = 0.01;
   
@@ -102,7 +102,7 @@ void boundary::make_bulkPixWeighting()
   // make the pads
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
-      if ( ( i == 1 ) and ( j == 1 ) ) {
+      if ( ( i == 3 ) and ( j == 3 ) ) {
 	padPotential = 1;
       }
       else {
@@ -152,7 +152,7 @@ void boundary::make_bulkWires()
   volumes[nVolumes] = new volume(xLow, xHigh,
 				 yLow, yHigh,
 				 zLow, zLow + wall_thickness,
-				 constant(0.22425));
+				 constant(0.175));
   nVolumes++;
 
   

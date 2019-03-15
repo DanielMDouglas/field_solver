@@ -16,11 +16,11 @@ double tolerance = 1.e-15;
 
 void handleOpts(int argc, char const * argv[])
 {
-  int opt = 1;
+  int opt = 0;
   while ( opt < argc ) {
     std::stringstream optValue;
     std::stringstream argValue;
-    optValue << argv[opt];
+    optValue << argv[++opt];
     argValue << argv[++opt];
     
     if ( optValue.str() == "-i" ) {
@@ -38,8 +38,6 @@ void handleOpts(int argc, char const * argv[])
     if ( optValue.str() == "-t" ) {
       argValue >> tolerance;
     }
-
-    opt++;
   }
 
   std::cout << "Using arguments: \n"
@@ -60,9 +58,9 @@ void solve_field(boundary b)
   // make some initial guess for the solution
   // assume a linear field
   
-  int nPointsX = 200;
-  int nPointsY = 200;
-  int nPointsZ = 200;  
+  int nPointsX = 280;
+  int nPointsY = 280;
+  int nPointsZ = 280;  
   
   scalarField bval = scalarField(b, nPointsX, nPointsY, nPointsZ, "val");
   scalarField is_b = scalarField(b, nPointsX, nPointsY, nPointsZ, "bool");

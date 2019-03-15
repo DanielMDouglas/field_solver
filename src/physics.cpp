@@ -82,3 +82,71 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
 
   return -vd*dir; // cm/us
 }
+
+path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
+{
+  const double dt = 1.e-4; // us
+  const int max_iter = 1e7;
+
+  double t = 0;
+  path trajectory = path(dt);
+  std::vector <double> pos = init_pos; // cm
+  
+  std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
+  
+  while ( true ) {
+    trajectory.steps.push_back(pos);
+    if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
+	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
+	 (pos[2] < b.Zmin) or (pos[2] > b.Zmax) ) {
+      std::cout << "particle left boundary!" << std::endl;
+      trajectory.fate = "OOB";
+      break;
+    }
+    else if ( t >= dt*max_iter ) {
+      std::cout << "particle timed out!" << std::endl;
+      trajectory.fate = "OOT";
+      break;
+    }
+    else if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
+      std::cout << "particle terminated in a volume!" << std::endl;
+      trajectory.fate = "volume";
+      break;
+    }
+    else {
+      // assume T = boiling point of Ar for now
+      pos = pos + driftV(E(pos, V), 87.302)*dt;
+      t += dt;
+    }
+  }
+  
+  trajectory.arrivalTime = t;
+
+  std::cout << "Final pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
+  std::cout << "Arrival time: " << t << std::endl;
+  std::cout << "Fate: " << trajectory.fate << std::endl;
+  std::cout << std::endl;
+
+  return trajectory;
+}
+
+std::vector <double> ramo_induction(path driftPath, scalarField * weight)
+{
+  const double q = 1.603e-19; // C
+
+  std::vector <double> pSeries;
+  
+  for ( int i = 1; i < driftPath.steps.size(); i++ ) {
+    std::vector <double> pos = driftPath.steps[i];
+    std::vector <double> vel = (driftPath.steps[i] + -1*driftPath.steps[i-1])*(1/driftPath.dt);
+    std::vector <double> eField = E(pos, weight);
+
+    double induced_current = q*dot(vel, eField); // C / us
+
+    pSeries.push_back(induced_current);
+    
+    // std::cout << i*driftPath.dt << '\t' << induced_current*1.e15 << std::endl;
+  }
+
+  return pSeries;
+}

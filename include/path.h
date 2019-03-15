@@ -13,6 +13,7 @@ class path
   std::vector <std::vector <double>> steps;
 
   path(double);
+  path(std::string);
   void print_to_file(std::string);
 };
 
