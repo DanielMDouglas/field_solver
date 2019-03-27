@@ -1,7 +1,10 @@
 #include <cmath>
 #include <iostream>
 
+#include <TF2.h>
+
 #include "physics.h"
+#include "volume.h"
 
 std::vector <double> E(std::vector <double> pos, scalarField * V)
 {
@@ -83,70 +86,166 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
   return -vd*dir; // cm/us
 }
 
-path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
+// path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
+// {
+//   const double dt = 1.e-4; // us
+//   const int max_iter = 1e7;
+
+//   double t = 0;
+//   path trajectory = path(dt);
+//   std::vector <double> pos = init_pos; // cm
+  
+//   std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
+  
+//   while ( true ) {
+//     trajectory.steps.push_back(pos);
+//     if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
+// 	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
+// 	 (pos[2] < b.Zmin) or (pos[2] > b.Zmax) ) {
+//       std::cout << "particle left boundary!" << std::endl;
+//       trajectory.fate = "OOB";
+//       break;
+//     }
+//     else if ( t >= dt*max_iter ) {
+//       std::cout << "particle timed out!" << std::endl;
+//       trajectory.fate = "OOT";
+//       break;
+//     }
+//     else if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
+//       std::cout << "particle terminated in a volume!" << std::endl;
+//       trajectory.fate = "volume";
+//       break;
+//     }
+//     else {
+//       // assume T = boiling point of Ar for now
+//       pos = pos + driftV(E(pos, V), 87.302)*dt;
+//       t += dt;
+//     }
+//   }
+  
+//   trajectory.arrivalTime = t;
+
+//   std::cout << "Final pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
+//   std::cout << "Arrival time: " << t << std::endl;
+//   std::cout << "Fate: " << trajectory.fate << std::endl;
+//   std::cout << std::endl;
+
+//   return trajectory;
+// }
+
+void drift_path(std::vector <double> init_pos, scalarField * V, boundary b, path *& trajectory)
 {
-  const double dt = 1.e-4; // us
   const int max_iter = 1e7;
 
   double t = 0;
-  path trajectory = path(dt);
+  trajectory = new path(dt);
   std::vector <double> pos = init_pos; // cm
   
   std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
   
   while ( true ) {
-    trajectory.steps.push_back(pos);
+    trajectory -> steps.push_back(pos);
+    std::cout << "doop" << std::endl;
     if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
 	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
 	 (pos[2] < b.Zmin) or (pos[2] > b.Zmax) ) {
       std::cout << "particle left boundary!" << std::endl;
-      trajectory.fate = "OOB";
+      trajectory -> fate = "OOB";
       break;
     }
-    else if ( t >= dt*max_iter ) {
+    std::cout << "scoop" << std::endl;
+    if ( t >= dt*max_iter ) {
       std::cout << "particle timed out!" << std::endl;
-      trajectory.fate = "OOT";
+      trajectory -> fate = "OOT";
       break;
     }
-    else if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
+    std::cout << "foop" << std::endl;
+    if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
       std::cout << "particle terminated in a volume!" << std::endl;
-      trajectory.fate = "volume";
+      trajectory -> fate = "volume";
       break;
     }
     else {
+      std::cout << "noop" << std::endl;
       // assume T = boiling point of Ar for now
-      pos = pos + driftV(E(pos, V), 87.302)*dt;
+      pos = pos + driftV(E(pos, V), Tb)*dt;
+      std::cout << E(pos, V)[0] << '\t' << E(pos, V)[1] << '\t' << E(pos, V)[2] << std::endl;
       t += dt;
     }
   }
   
-  trajectory.arrivalTime = t;
+  trajectory -> arrivalTime = t;
 
   std::cout << "Final pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
   std::cout << "Arrival time: " << t << std::endl;
-  std::cout << "Fate: " << trajectory.fate << std::endl;
+  std::cout << "Fate: " << trajectory -> fate << std::endl;
   std::cout << std::endl;
 
-  return trajectory;
+  std::cout << trajectory -> steps.size() << std::endl;
+
+  // return trajectory;
 }
 
-std::vector <double> ramo_induction(path driftPath, scalarField * weight)
+std::vector <double> ramo_induction(double q, path * driftPath, scalarField * weight)
 {
-  const double q = 1.603e-19; // C
 
   std::vector <double> pSeries;
   
-  for ( int i = 1; i < driftPath.steps.size(); i++ ) {
-    std::vector <double> pos = driftPath.steps[i];
-    std::vector <double> vel = (driftPath.steps[i] + -1*driftPath.steps[i-1])*(1/driftPath.dt);
+  for ( int i = 1; i < driftPath -> steps.size(); i++ ) {
+    std::vector <double> pos = driftPath -> steps[i];
+    std::vector <double> vel = ((driftPath -> steps[i]) + -1*(driftPath -> steps[i-1]))*(1/(driftPath -> dt));
     std::vector <double> eField = E(pos, weight);
 
     double induced_current = q*dot(vel, eField); // C / us
 
     pSeries.push_back(induced_current);
     
-    // std::cout << i*driftPath.dt << '\t' << induced_current*1.e15 << std::endl;
+    // std::cout << i*driftPath -> dt << '\t' << induced_current*1.e15 << std::endl;
   }
 
   return pSeries;
+}
+
+void sample(std::vector <double> depPos, double * sampleT, std::vector <double> * samplePos)
+{
+  // [0] - n0     - number of electrons in the deposition
+  // [1] - DT     - transverse diffusion coefficient (cm^2/us)
+  // [2] - DL     - longitudinal diffusion coefficient (cm^2/us)
+  // [3] - z      - distance from deposit to drift plane (cm)
+  // [4] - v      - drift velocity (cm/us)
+  // [5] - lambda - inverse mfp (cm^-1)
+  
+  //  x  - t      - time from deposit (us)
+  //  y  - rho    - radial param (cm)
+  
+  TF2 * pdf = new TF2("pdf", "([0]/(4*pi*[1]*x*sqrt(4*pi*[2]*x)))*exp(-pow([3] - [4]*x, 2)/(4*[2]*x) - [5]*[4]*x)*exp(-pow(y, 2)/(4*[1]*x))", 0, 1000, 0, 1000);
+
+  // TF2 * pdf = new TF2("pdf", "[0]/(4*pi*[1]*sqrt(4*pi*[2]))*exp(-pow(x, 2)/(4*[2]))", 0, 1000, 0, 1000);
+
+  // TF2 * pdf = new TF2("pdf", "[0]*[1]*[2]*[3]*[4]*[5]*x*y");
+  
+  pdf -> SetParameter(0, 1); // n0
+  // pdf -> SetParameter(1, 16.3e3); // DT
+  // pdf -> SetParameter(2, 6.2e3); // DL
+  pdf -> SetParameter(1, 12.0e-6); // DT
+  pdf -> SetParameter(2, 7.2e-6); // DL
+  pdf -> SetParameter(3, depPos[2] - 2.5); // z
+  pdf -> SetParameter(4, mag(driftV(0.5*zhat, Tb))); // v
+  pdf -> SetParameter(5, 0); // lambda
+
+  std::cout << mag(driftV(0.5*zhat, Tb)) << std::endl;
+  
+  double rho;
+  double t;
+  pdf -> GetRandom2(t, rho);
+  
+  double theta = 0;
+  sampleT = &t;
+  samplePos = new std::vector <double> {depPos[0] + rho*cos(theta),
+					depPos[1] + rho*sin(theta),
+					2.5};
+  
+  std::cout << t << '\t' << rho << std::endl;
+
+  // return std::vector <double> {depPos[0], depPos[1], 2.5};
 }

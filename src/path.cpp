@@ -6,6 +6,7 @@
 path::path(double deltaT)
 {
   dt = deltaT;
+  // steps = std::vector <std::vector <double>> (1e6, std::vector <double> (3));
 }
 
 path::path(std::string filename)
@@ -39,6 +40,13 @@ path::path(std::string filename)
     step.push_back(std::stod(entry));
 
     steps.push_back(step);
+  }
+}
+
+void path::shift(std::vector <double> offset)
+{
+  for ( uint i = 0; i < steps.size(); i++ ) {
+    steps[i] = steps[i] + offset;
   }
 }
 

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "utils.h"
+
 class path
 {
  public:
@@ -14,6 +16,7 @@ class path
 
   path(double);
   path(std::string);
+  void shift(std::vector <double>);
   void print_to_file(std::string);
 };
 

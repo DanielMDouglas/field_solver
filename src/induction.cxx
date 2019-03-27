@@ -2,9 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
+#include <math.h>
 
 #include "induction.h"
 #include "physics.h"
+#include "pad.h"
 
 std::string potFileName = "none";
 std::string weightFileName = "none";
@@ -65,30 +68,86 @@ int main(int argc, char const * argv[])
   scalarField * weight = new scalarField(weightFileName);
   boundary bound (geom);
 
-  std::ofstream arrTimeOutFile (arrTimeFileName);
-  std::ofstream pSeriesOutFile (pSeriesFileName);
+  pad * padList [85];
+  int nPads = 0;
   
-  double ds = 0.01;
-  for ( double xi = 0; xi <= 0.2; xi += ds ) {
-    for ( double yi = 0; yi <= xi; yi += ds ) {
-      std::vector <double> init_pos = {xi, yi, 2.};
-      path driftPath = drift_path(init_pos, potential, bound);
-      if ( xi <= 0.2 ) {
-	arrTimeOutFile << xi << ',' << yi << ',' << driftPath.steps.size()*driftPath.dt << '\n';
-      }
-      std::vector <double> pSeries = ramo_induction(driftPath, weight);
-      double maxAbs = 0;
-      for ( double val: pSeries ) {
-	if ( abs(val) > maxAbs ) {
-	  maxAbs = abs(val);
-	}
-      }
-      pSeriesOutFile << xi << ',' << yi << ',' << maxAbs << '\n';
+  for ( int i = 0; i < 17; i++ ) {
+    double x = -3.2 + 0.4*i;
+    for ( int j = 0; j < 5; j++ ) {
+      double y = -0.8 + 0.4*j;
+      std::cout << x << '\t' << y << std::endl;
+      padList[nPads] = new pad(150, std::vector <double> {x, y, 0});
+      nPads++;
     }
   }
+  
+  // pad * centerPad = new pad(150, std::vector <double> {0,0,0});
+  // pad * adjPad = new pad(150, std::vector <double> {0.4, 0, 0});
+  // pad * diagPad = new pad(150, std::vector <double> {0.4, 0.4, 0});
 
-  arrTimeOutFile.close();
-  pSeriesOutFile.close();
+  std::ifstream inFile ("track_sample_small.dat");
+  std::string entry;
+  double value = 0;
+  
+  while ( getline(inFile, entry, '\t') ) {
+    std::vector <double> init_pos;
+    init_pos.push_back(std::stod(entry));
+
+    getline(inFile, entry, '\t');
+    init_pos.push_back(std::stod(entry));
+
+    getline(inFile, entry, '\t');
+    init_pos.push_back(std::stod(entry));
+
+    getline(inFile, entry, '\n');
+    double t0 = std::stod(entry);
+
+    std::cout << "New drift from "
+	      << "("  << init_pos[0]
+	      << ", " << init_pos[1]
+	      << ", " << init_pos[2]
+	      << ")"  << std::endl;
+
+    std::vector <double> driftPos = {fmod(init_pos[0], 0.4),
+				     fmod(init_pos[1], 0.4),
+				     init_pos[2]};
+
+    std::cout << "Calculating path from "
+	      << "("  << driftPos[0]
+	      << ", " << driftPos[1]
+	      << ", " << driftPos[2]
+	      << ")"  << std::endl;
+    
+    path * driftPath;
+    drift_path(driftPos, potential, bound, driftPath);
+
+    driftPath -> shift(init_pos - driftPos);
+    
+    for ( pad * thisPad: padList ) {
+      thisPad -> add_response(-e, t0, init_pos, driftPath,
+			      potential, weight, bound);
+    }
+
+    delete driftPath;
+  }
+
+  inFile.close();
+
+  for ( pad * thisPad: padList) {
+    std::ostringstream stringStream;
+    stringStream << "responses_small/"
+		 << thisPad -> center[0] << "_"
+		 << thisPad -> center[1] << "_response.dat";
+    thisPad -> print_to_file(stringStream.str());
+  }
+    
+  // for ( int i = 0; i < 100000; i++ ) {
+  //   double * t;
+  //   std::vector <double> * samplePos;
+  //   sample(std::vector <double> {0, 0, 10.}, t, samplePos);
+
+  //   // std::cout << &t << '\t' << &samplePos[0] << std::endl;
+  // }
   
   return 0;
 }

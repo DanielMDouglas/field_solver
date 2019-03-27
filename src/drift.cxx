@@ -28,7 +28,7 @@ void handleOpts(int argc, char const * argv[])
   }
 
   if ( fieldFileName == "none" ) {
-    std::cout << "Need a weighting field file!" << std::endl;
+    std::cout << "Need a field file!" << std::endl;
     exit(1);
   }
   
@@ -37,13 +37,10 @@ void handleOpts(int argc, char const * argv[])
 	    << "geom:             " << geom << std::endl;
 }
 
-void drift_and_save(double xi, scalarField * potential, boundary detector)
-{
-  path trajectory = drift_path(std::vector <double> {xi, 0., 1.75}, potential, detector);
-  std::ostringstream stringStream;
-  stringStream << "paths/drift_from_" << xi << ".dat";
-  trajectory.print_to_file(stringStream.str());
-}
+// void drift_and_save(double xi, scalarField * potential, boundary detector, path * trajectory)
+// {
+//   drift_path(std::vector <double> {xi, 0., 1.75}, potential, detector);
+// }
 
 int main(int argc, char const * argv[])
 {
@@ -52,20 +49,39 @@ int main(int argc, char const * argv[])
   scalarField * potential = new scalarField(fieldFileName);
   boundary detector (geom);
   
-  const int nPaths = 100;
+  const int nPaths = 102;
 
-  std::thread * threads [nPaths];
+  // std::thread * threads [nPaths];
+  // path * trajectories [nPaths];
+
+  double xi;
   
-  std::vector <double> xi_space = linspace(-0.9, 0.9, nPaths);
-  // for ( double xi: linspace(-0.9, 0.9, nPaths) ) {
+  std::vector <double> xi_space = linspace(-1.2, 1.2, nPaths);
   for ( int i = 0; i < nPaths; i++ ) {
-    double xi = xi_space[i];
-    threads[i] = new std::thread (drift_and_save, xi, potential, detector);
+    xi = xi_space[i];
+    path * driftPath;
+    drift_path(std::vector <double> {xi, 0, 1.75}, potential, detector, driftPath);
+
+    std::ostringstream stringStream;
+    stringStream << "paths/drift_from_" << xi << ".dat";
+    driftPath -> print_to_file(stringStream.str());
+
+    delete driftPath;
+    
+    // threads[i] = new std::thread ( drift_path,
+    // 				   std::vector <double> {xi, 0, 1.75},
+    // 				   potential,
+    // 				   detector,
+    // 				   driftPath );
   }
 
-  for ( int i = 0; i < nPaths; i++ ) {
-    threads[i] -> join();
-  }
+  // for ( int i = 0; i < nPaths; i++ ) {
+  //   xi = xi_space[i];
+  //   threads[i] -> join();
+  //   std::ostringstream stringStream;
+  //   stringStream << "paths/drift_from_" << xi << ".dat";
+  //   trajectories[i] -> print_to_file(stringStream.str());
+  // }
     
   return 0;
 }

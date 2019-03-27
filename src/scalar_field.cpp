@@ -137,6 +137,7 @@ void scalarField::set(int i, int j, int k, double value)
 
 double scalarField::get(int i, int j, int k)
 {
+  // std::cout << i << '\t' << j << '\t' << k << std::endl;
   return values[ySize*zSize*i + zSize*j + k];
 }
 

@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "physics.h"
 
-void drift_and_save(double, scalarField*, boundary);
+/* void drift_and_save(double, scalarField*, boundary); */
+void drift_and_save(double, scalarField*, boundary, path*);
 
 #endif

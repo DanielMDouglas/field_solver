@@ -4,6 +4,7 @@ import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from mpl_toolkits.mplot3d import Axes3D
 import sys
 
 def read_csv(infileName):
@@ -28,10 +29,9 @@ def plot_pads(ax):
     padSize = 0.2
     padThickness = 0.05
     spacing = 0.2
-    xLow = -1.4
-    xHigh = 1.4
-    # nPadsPerRow = int((xHigh - xLow)/(padSize + spacing))
-    nPadsPerRow = 7
+    xLow = -1
+    xHigh = 1
+    nPadsPerRow = int((xHigh - xLow)/(padSize + spacing))
     # pads
     for i in range(nPadsPerRow):
         rect = patches.Rectangle((xLow + spacing/2 + (padSize + spacing)*i,
@@ -75,22 +75,23 @@ def plot_pads(ax):
     #                          facecolor = 'y')
     # ax.add_patch(rect)
 
-
 if __name__ == '__main__':
     infileNames = sys.argv[1:]
     if not infileNames:
         print "Please specify the file to use!"
         print "Usage: drift_path [fieldData.dat]"
 
-    fig, ax = plt.subplots(1)
-        
+    # fig, ax = plt.subplots(1)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
     for infileName in infileNames:
         t, x, y, z = read_csv(infileName)
 
         # plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
-        plt.plot(x, z, c = 'blue')
+        ax.plot3D(x, y, z, c = 'blue')
         
-    plot_pads(ax)
+    # plot_pads(ax)
     # plot_wires()
     
     plt.xlabel(r'x [cm]')

@@ -1,6 +1,8 @@
 #include <iostream>
+#include <vector>
 
 #include "boundary.h"
+#include "pad.h"
 
 boundary::boundary(std::string which)
 {
@@ -39,7 +41,8 @@ void boundary::make_bulkPix()
   double padSize = 0.2;
   double padThickness = 0.05;
   double spacing = 0.2;
-  int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
+  // int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
+  int nPadsPerRow = 7;
   double padPotential = 0.;
 
   std::cout << "Setting up pads with size "
@@ -50,12 +53,13 @@ void boundary::make_bulkPix()
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
       volumes[nVolumes] = new volume(xLow + spacing/2 + (padSize + spacing)*i,
-				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
-				     yLow + spacing/2 + (padSize + spacing)*j,
-				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
-				     -padThickness/2, padThickness/2,
-				     constant(padPotential));
+      				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
+      				     yLow + spacing/2 + (padSize + spacing)*j,
+      				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
+      				     -padThickness/2, padThickness/2,
+      				     constant(padPotential));
       volumes[nVolumes] -> isSensitive = true;
+      
       nVolumes++;
     }
   }
@@ -84,15 +88,15 @@ void boundary::make_bulkPixWeighting()
   
   // far cathode plane  
   volumes[nVolumes] = new volume(xLow, xHigh,
-				 yLow, yHigh,
-				 zHigh - wall_thickness, zHigh,
-				 constant(0));
+  				 yLow, yHigh,
+  				 zHigh - wall_thickness, zHigh,
+  				 constant(0));
   nVolumes++;
   
   double padSize = 0.2;
   double padThickness = 0.05;
   double spacing = 0.2;
-  int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
+  int nPadsPerRow = 7;
   double padPotential;
 
   std::cout << "Setting up pads with size "

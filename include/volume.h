@@ -2,6 +2,7 @@
 #define VOLUME_H
 
 #include <functional>
+#include <vector>
 
 class volume
 {
@@ -10,7 +11,7 @@ class volume
   double Xmin, Xmax;
   double Ymin, Ymax;
   double Zmin, Zmax;
-
+  std::vector <double> center;
   bool isSensitive = false;
   
   volume(double, double, double, double, double, double, std::function<double (double, double, double)>);

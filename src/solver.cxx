@@ -76,6 +76,9 @@ void solve_field(boundary b)
     double ySlope = (b.boundary_value(0, b.Ymax, 0) - b.boundary_value(0, b.Ymin, 0))/(b.Ymax - b.Ymin);
     double zSlope = (b.boundary_value(0, 0, b.Zmax) - b.boundary_value(0, 0, b.Zmin))/(b.Zmax - b.Zmin);
 
+    // std::cout << intercept << '\t' << xSlope << '\t' << ySlope << '\t' << zSlope << std::endl;
+    intercept = 0;
+    
     solution = scalarField(x_axis, y_axis, z_axis,
 			   linear(intercept, xSlope, ySlope, zSlope));
   }
