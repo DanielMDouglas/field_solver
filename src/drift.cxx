@@ -46,7 +46,7 @@ int main(int argc, char const * argv[])
 {
   handleOpts(argc, argv);
   
-  scalarField * potential = new scalarField(fieldFileName);
+  scalarField <double> * potential = new scalarField <double> (fieldFileName);
   boundary detector (geom);
   
   const int nPaths = 102;

@@ -42,24 +42,24 @@ int main(int argc, char const * argv[])
 {
   handleOpts(argc, argv);
 
-  scalarField potential = scalarField(inFileName);
+  scalarField <double> potential (inFileName);
 
-  scalarField Ex =   scalarField(potential.x_space,
-				 potential.y_space,
-				 potential.z_space,
-				 0);
-  scalarField Ey =   scalarField(potential.x_space,
-				 potential.y_space,
-				 potential.z_space,
-				 0);
-  scalarField Ez =   scalarField(potential.x_space,
-				 potential.y_space,
-				 potential.z_space,
-				 0);
-  scalarField Emag = scalarField(potential.x_space,
-				 potential.y_space,
-				 potential.z_space,
-				 0);
+  scalarField <double> Ex (potential.x_space,
+			   potential.y_space,
+			   potential.z_space,
+			   0);
+  scalarField <double> Ey (potential.x_space,
+			   potential.y_space,
+			   potential.z_space,
+			   0);
+  scalarField <double> Ez (potential.x_space,
+			   potential.y_space,
+			   potential.z_space,
+			   0);
+  scalarField <double> Emag (potential.x_space,
+			     potential.y_space,
+			     potential.z_space,
+			     0);
 
   for ( int i = 0; i < potential.xSize; i++ ) {
     for ( int j = 0; j < potential.ySize; j++ ) {

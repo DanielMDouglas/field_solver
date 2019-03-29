@@ -15,6 +15,36 @@ boundary::boundary(std::string which)
   else if ( which == "bulkWires" ) {
     make_bulkWires();
   }
+  else if ( which == "linear" ) {
+    make_linear();
+  }
+}
+
+void boundary::make_linear()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 1;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
 }
 
 void boundary::make_bulkPix()
@@ -22,26 +52,25 @@ void boundary::make_bulkPix()
   periodicX = true;
   periodicY = true;
     
-  double xLow = -1.4;
-  double xHigh = 1.4;
-  double yLow = -1.4;
-  double yHigh = 1.4;
-  double zLow = -0.2;
-  double zHigh = 2.6;
+  Xmin = -1.4;
+  Xmax = 1.4;
+  Ymin = -1.4;
+  Ymax = 1.4;
+  Zmin = -0.2;
+  Zmax = 2.6;
   
   double wall_thickness = 0.01;
   
   // far cathode plane  
-  volumes[nVolumes] = new volume(xLow, xHigh,
-				 yLow, yHigh,
-				 zHigh - wall_thickness, zHigh,
-				 constant(-0.6));
-  nVolumes++;
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(-0.6)));
   
   double padSize = 0.2;
   double padThickness = 0.05;
   double spacing = 0.2;
-  // int nPadsPerRow = (xHigh - xLow)/(padSize + spacing);
+  // int nPadsPerRow = (Xmax - Xmin)/(padSize + spacing);
   int nPadsPerRow = 7;
   double padPotential = 0.;
 
@@ -52,24 +81,14 @@ void boundary::make_bulkPix()
   // make the pads
   for ( int i = 0; i < nPadsPerRow; i++ ) {
     for ( int j = 0; j < nPadsPerRow; j++ ) {
-      volumes[nVolumes] = new volume(xLow + spacing/2 + (padSize + spacing)*i,
-      				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
-      				     yLow + spacing/2 + (padSize + spacing)*j,
-      				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
-      				     -padThickness/2, padThickness/2,
-      				     constant(padPotential));
-      volumes[nVolumes] -> isSensitive = true;
-      
-      nVolumes++;
+      add_volume(new volume(Xmin + spacing/2 + (padSize + spacing)*i,
+			    (Xmin + spacing/2 + padSize) + (padSize + spacing)*i,
+			    Ymin + spacing/2 + (padSize + spacing)*j,
+			    (Ymin + spacing/2 + padSize) + (padSize + spacing)*j,
+			    -padThickness/2, padThickness/2,
+			    constant(padPotential)));
     }
   }
-
-  Xmin = xLow;
-  Xmax = xHigh;
-  Ymin = yLow;
-  Ymax = yHigh;
-  Zmin = zLow;
-  Zmax = zHigh;
 }
 
 void boundary::make_bulkPixWeighting()
@@ -77,21 +96,20 @@ void boundary::make_bulkPixWeighting()
   // periodicX = true;
   // periodicY = true;
     
-  double xLow = -1.4;
-  double xHigh = 1.4;
-  double yLow = -1.4;
-  double yHigh = 1.4;
-  double zLow = -0.2;
-  double zHigh = 2.6;
+  Xmin = -1.4;
+  Xmax = 1.4;
+  Ymin = -1.4;
+  Ymax = 1.4;
+  Zmin = -0.2;
+  Zmax = 2.6;
   
   double wall_thickness = 0.01;
   
   // far cathode plane  
-  volumes[nVolumes] = new volume(xLow, xHigh,
-  				 yLow, yHigh,
-  				 zHigh - wall_thickness, zHigh,
-  				 constant(0));
-  nVolumes++;
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(0)));
   
   double padSize = 0.2;
   double padThickness = 0.05;
@@ -112,23 +130,14 @@ void boundary::make_bulkPixWeighting()
       else {
 	padPotential = 0;
       }
-      volumes[nVolumes] = new volume(xLow + spacing/2 + (padSize + spacing)*i,
-				     (xLow + spacing/2 + padSize) + (padSize + spacing)*i,
-				     yLow + spacing/2 + (padSize + spacing)*j,
-				     (yLow + spacing/2 + padSize) + (padSize + spacing)*j,
-				     -padThickness/2, padThickness/2,
-				     constant(padPotential));
-      volumes[nVolumes] -> isSensitive = true;
-      nVolumes++;
+      add_volume(new volume(Xmin + spacing/2 + (padSize + spacing)*i,
+			    (Xmin + spacing/2 + padSize) + (padSize + spacing)*i,
+			    Ymin + spacing/2 + (padSize + spacing)*j,
+			    (Ymin + spacing/2 + padSize) + (padSize + spacing)*j,
+			    -padThickness/2, padThickness/2,
+			    constant(padPotential)));
     }
   }
-
-  Xmin = xLow;
-  Xmax = xHigh;
-  Ymin = yLow;
-  Ymax = yHigh;
-  Zmin = zLow;
-  Zmax = zHigh;
 }
 
 void boundary::make_bulkWires()
@@ -136,29 +145,26 @@ void boundary::make_bulkWires()
   periodicX = true;
   periodicY = true;
     
-  double xLow = -1.05;
-  double xHigh = 1.05;
-  double yLow = -1.05;
-  double yHigh = 1.05;
-  double zLow = -0.25;
-  double zHigh = 1.85;
+  Xmin = -1.05;
+  Xmax = 1.05;
+  Ymin = -1.05;
+  Ymax = 1.05;
+  Zmin = -0.25;
+  Zmax = 1.85;
   
   double wall_thickness = 0.01;
   
   // far cathode plane  
-  volumes[nVolumes] = new volume(xLow, xHigh,
-				 yLow, yHigh,
-				 zHigh - wall_thickness, zHigh,
-				 constant(-0.4376));
-  nVolumes++;
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(-0.4376)));
 
   // backstop plane
-  volumes[nVolumes] = new volume(xLow, xHigh,
-				 yLow, yHigh,
-				 zLow, zLow + wall_thickness,
-				 constant(0.175));
-  nVolumes++;
-
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.175)));
   
   double wire_rad = 0.01;
   double wire_pitch = 0.3;
@@ -176,20 +182,12 @@ void boundary::make_bulkWires()
 	wire_potential = -0.11;
       }
       
-      volumes[nVolumes] = new volume(x - wire_rad, x + wire_rad,
-				     yLow, yHigh,
-				     z - wire_rad, z + wire_rad,
-				     constant(wire_potential));
-      nVolumes++;
+      add_volume(new volume(x - wire_rad, x + wire_rad,
+			    Ymin, Ymax,
+			    z - wire_rad, z + wire_rad,
+			    constant(wire_potential)));
     }
   }
-
-  Xmin = xLow;
-  Xmax = xHigh;
-  Ymin = yLow;
-  Ymax = yHigh;
-  Zmin = zLow;
-  Zmax = zHigh;
 }
 
 void boundary::make_field_cage(double xLow, double xHigh,
@@ -201,25 +199,27 @@ void boundary::make_field_cage(double xLow, double xHigh,
 {
   // Field cage walls
   
-  volumes[nVolumes] = new volume(xLow, xLow + wall_thickness,
-  				 yLow, yHigh,
-  				 zLow, zHigh,
-  				 linear(intercept, 0., 0., zSlope));
-  nVolumes++;
-  volumes[nVolumes] = new volume(xHigh - wall_thickness, xHigh,
-  				 yLow, yHigh,
-  				 zLow, zHigh,
-  				 linear(intercept, 0., 0., zSlope));
-  nVolumes++;
-  volumes[nVolumes] = new volume(xLow, xHigh,
-  				 yLow, yLow + wall_thickness,
-  				 zLow, zHigh,
-  				 linear(intercept, 0., 0., zSlope));
-  nVolumes++;
-  volumes[nVolumes] = new volume(xLow, xHigh,
-  				 yHigh - wall_thickness, yHigh,
-  				 zLow, zHigh,
-  				 linear(intercept, 0., 0., zSlope));
+  add_volume(new volume(xLow, xLow + wall_thickness,
+			yLow, yHigh,
+			zLow, zHigh,
+			linear(intercept, 0., 0., zSlope)));
+  add_volume(new volume(xHigh - wall_thickness, xHigh,
+			yLow, yHigh,
+			zLow, zHigh,
+			linear(intercept, 0., 0., zSlope)));
+  add_volume(new volume(xLow, xHigh,
+			yLow, yLow + wall_thickness,
+			zLow, zHigh,
+			linear(intercept, 0., 0., zSlope)));
+  add_volume(new volume(xLow, xHigh,
+			yHigh - wall_thickness, yHigh,
+			zLow, zHigh,
+			linear(intercept, 0., 0., zSlope)));
+}
+
+void boundary::add_volume(volume * newVol)
+{
+  volumes[nVolumes] = newVol;
   nVolumes++;
 }
 

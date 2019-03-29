@@ -18,15 +18,15 @@ class pad
   void add_response(double,
 		    double,
 		    std::vector <double>,
-		    scalarField *,
-		    scalarField *,
+		    scalarField <double> *,
+		    scalarField <double> *,
 		    boundary);
   void add_response(double,
 		    double,
 		    std::vector <double>,
 		    path *,
-		    scalarField *,
-		    scalarField *,
+		    scalarField <double> *,
+		    scalarField <double> *,
 		    boundary);
   void print_to_file(std::string);
 };

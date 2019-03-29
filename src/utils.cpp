@@ -20,7 +20,7 @@ std::function<double (double, double, double)> linear(double intercept,
 						      double ySlope,
 						      double zSlope)
 {
-  // intercept defines the value of the function at the origin
+  // intercept defines the value of the function at the origin (x = y = z = 0)
   // x/y/zSlope defines the change in the value w.r.t. x/y/z
   return [intercept, xSlope, ySlope, zSlope] (double x, double y, double z)
     {

@@ -21,9 +21,11 @@ class boundary
   bool periodicZ = false;
   
   boundary(std::string);
+  void make_linear();
   void make_bulkPix();
   void make_bulkPixWeighting();
   void make_bulkWires();
+  void add_volume(volume*);
   void make_field_cage(double, double,
 		       double, double,
 		       double, double,
