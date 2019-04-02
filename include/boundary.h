@@ -22,6 +22,7 @@ class boundary
   
   boundary(std::string);
   void make_linear();
+  void make_capacitor();
   void make_bulkPix();
   void make_bulkPixWeighting();
   void make_bulkWires();
@@ -34,6 +35,7 @@ class boundary
 		       double);
   bool is_in_boundary(double, double, double);
   double boundary_value(double, double, double);
+  double permittivity(double, double, double);
 };
 
 #endif

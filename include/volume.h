@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <vector>
+#include <string>
 
 class volume
 {
@@ -12,9 +13,16 @@ class volume
   double Ymin, Ymax;
   double Zmin, Zmax;
   std::vector <double> center;
+  std::string type;
+  double er;
   bool isSensitive = false;
   
-  volume(double, double, double, double, double, double, std::function<double (double, double, double)>);
+  volume(double, double, double,
+	 double, double, double,
+	 double);
+  volume(double, double, double,
+	 double, double, double,
+	 std::function<double (double, double, double)>);
   double get_voltage(double, double, double);
   bool is_in_boundary(double, double, double);
 };

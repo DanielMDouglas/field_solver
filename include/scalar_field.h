@@ -8,7 +8,7 @@
 
 template <typename T>
 class scalarField
-{
+{ 
  public:
   int xSize, ySize, zSize;
   // const static int size = 21952000;
@@ -30,6 +30,11 @@ class scalarField
 	      std::vector <double>,
 	      std::function<T (double, double, double)>);
   scalarField(boundary, int, int, int, std::string);
+  scalarField(boundary,
+	      std::vector <double>,
+	      std::vector <double>,
+	      std::vector <double>,
+	      std::string);
   scalarField(std::string);
   void set(int, int, int, T);
   T get(int, int, int);

@@ -48,57 +48,24 @@ double squared_diff(scalarField <double> a, scalarField <double> b)
 {
   // return the squared differences of each field
 
-  // first, check that they have the same shape
-  try {
-    if ( ( not ( a.xSize == b.xSize ) )
-	 or ( not ( a.ySize == b.ySize ) )
-	 or ( not ( a.zSize == b.zSize ) ) ) {
-      throw 20;
-    }
-    else {
-      scalarField <double> temp = scalarField <double>(a.x_space, a.y_space, a.z_space, 0.);
-      for ( int i = 0; i < a.xSize; i++ ) {
-	for ( int j = 0; j < a.ySize; j++ ) {
-	  for ( int k = 0; k < a.zSize; k++ ) {
-	    temp.set(i, j, k, a.get(i, j, k) - b.get(i, j, k));
-	  }
-	}
+  scalarField <double> temp = scalarField <double>(a.x_space, a.y_space, a.z_space, 0.);
+  for ( int i = 0; i < a.xSize; i++ ) {
+    for ( int j = 0; j < a.ySize; j++ ) {
+      for ( int k = 0; k < a.zSize; k++ ) {
+	temp.set(i, j, k, a.get(i, j, k) - b.get(i, j, k));
       }
-      return squared_sum(temp); 
     }
   }
-  catch ( int e ) {
-    std::cout << "ERROR: tried to compute squared difference of fields of different size!" << std::endl;
-  }
-  return 0;
+  return squared_sum(temp); 
 }
 
 double squared_diff(scalarField <double> a, scalarField <double> b, scalarField <bool> exclude)
 {
   // return the squared differences of each field
 
-  // first, check that they have the same shape
-  try {
-    if ( ( not ( a.xSize == b.xSize ) )
-	 or ( not ( a.ySize == b.ySize ) )
-	 or ( not ( a.zSize == b.zSize ) ) ) {
-      throw 20;
-    }
-    else {
-      scalarField <double> temp = scalarField <double>(a.x_space, a.y_space, a.z_space, 0.);
-      for ( int i = 0; i < a.xSize; i++ ) {
-	for ( int j = 0; j < a.ySize; j++ ) {
-	  for ( int k = 0; k < a.zSize; k++ ) {
-	    temp.set(i, j, k,
-		     a.get(i, j, k) - b.get(i, j, k));
-	  }
-	}
-      }
-      return squared_sum(temp, exclude);
-    }
+  scalarField <double> temp (a.x_space, a.y_space, a.z_space, constant(0.));
+  for ( int i = 0; i < a.xSize*a.ySize*a.zSize; i++ ) {
+    temp.values[i] = a.values[i] - b.values[i];	
   }
-  catch ( int e ) {
-    std::cout << "ERROR: tried to compute squared difference of fields of different size!" << std::endl;
-  }
-  return 0;
+  return squared_sum(temp, exclude);
 }
