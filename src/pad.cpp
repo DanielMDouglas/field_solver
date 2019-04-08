@@ -17,8 +17,8 @@ pad::pad(double total_time, std::vector <double> center_pos)
 void pad::add_response(double q,
 		       double t0,
 		       std::vector <double> charge_position,
-		       scalarField <double> * potential,
-		       scalarField <double> * weighting,
+		       field <double> * potential,
+		       field <double> * weighting,
 		       boundary bound)
 {
   int startingInd = t0/dt;
@@ -62,8 +62,8 @@ void pad::add_response(double q,
 		       double t0,
 		       std::vector <double> init_position,
 		       path * driftPath,
-		       scalarField <double> * potential,
-		       scalarField <double> * weighting,
+		       field <double> * potential,
+		       field <double> * weighting,
 		       boundary bound)
 {
   int startingInd = t0/dt;

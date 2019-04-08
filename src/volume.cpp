@@ -4,7 +4,7 @@
 volume::volume(double Xm = 0, double XM = 0,
 	       double Ym = 0, double YM = 0,
 	       double Zm = 0, double ZM = 0,
-	       double relative_permittivity = 1)
+	       double relative_permittivity = 500)
 {
   // dielectric constructor
   Xmin = Xm;
@@ -55,8 +55,7 @@ bool volume::is_in_boundary(double x, double y, double z)
        ( Ymin <= y ) and
        ( y <= Ymax ) and
        ( Zmin <= z ) and
-       ( z <= Zmax ) and
-       type == "conductor") {
+       ( z <= Zmax ) ) {
     return true;
   }
   else return false;

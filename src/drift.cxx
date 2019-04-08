@@ -37,7 +37,7 @@ void handleOpts(int argc, char const * argv[])
 	    << "geom:             " << geom << std::endl;
 }
 
-// void drift_and_save(double xi, scalarField * potential, boundary detector, path * trajectory)
+// void drift_and_save(double xi, field * potential, boundary detector, path * trajectory)
 // {
 //   drift_path(std::vector <double> {xi, 0., 1.75}, potential, detector);
 // }
@@ -46,7 +46,7 @@ int main(int argc, char const * argv[])
 {
   handleOpts(argc, argv);
   
-  scalarField <double> * potential = new scalarField <double> (fieldFileName);
+  field <double> * potential = new field <double> (fieldFileName);
   boundary detector (geom);
   
   const int nPaths = 102;

@@ -64,8 +64,8 @@ int main(int argc, char const * argv[])
 {
   handleOpts(argc, argv);
   
-  scalarField <double> * potential = new scalarField <double> (potFileName);
-  scalarField <double> * weight = new scalarField <double> (weightFileName);
+  field <double> * potential = new field <double> (potFileName);
+  field <double> * weight = new field <double> (weightFileName);
   boundary bound (geom);
 
   pad * padList [85];

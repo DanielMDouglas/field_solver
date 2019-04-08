@@ -3,7 +3,7 @@
 
 #include "boundary.h"
 #include "utils.h"
-#include "scalar_field.h"
+#include "field.h"
 
 void solver(boundary);
 

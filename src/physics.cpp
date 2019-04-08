@@ -6,7 +6,7 @@
 #include "physics.h"
 #include "volume.h"
 
-std::vector <double> E(std::vector <double> pos, scalarField <double> * V)
+std::vector <double> E(std::vector <double> pos, field <double> * V)
 {
   return -1*(V -> interpolate_grad(pos));
 }
@@ -86,7 +86,7 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
   return -vd*dir; // cm/us
 }
 
-// path drift_path(std::vector <double> init_pos, scalarField * V, boundary b)
+// path drift_path(std::vector <double> init_pos, field * V, boundary b)
 // {
 //   const double dt = 1.e-4; // us
 //   const int max_iter = 1e7;
@@ -133,7 +133,7 @@ std::vector <double> driftV(std::vector <double> eField, double temperature)
 //   return trajectory;
 // }
 
-void drift_path(std::vector <double> init_pos, scalarField <double> * V, boundary b, path *& trajectory)
+void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, path *& trajectory)
 {
   const int max_iter = 1e7;
 
@@ -186,7 +186,7 @@ void drift_path(std::vector <double> init_pos, scalarField <double> * V, boundar
   // return trajectory;
 }
 
-std::vector <double> ramo_induction(double q, path * driftPath, scalarField <double> * weight)
+std::vector <double> ramo_induction(double q, path * driftPath, field <double> * weight)
 {
 
   std::vector <double> pSeries;

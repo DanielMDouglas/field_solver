@@ -21,6 +21,9 @@ boundary::boundary(std::string which)
   else if ( which == "cap" ) {
     make_capacitor();
   }
+  else if ( which == "cap_die" ) {
+    make_capacitor_with_dielectric();
+  }
 }
 
 void boundary::make_linear()
@@ -102,6 +105,63 @@ void boundary::make_capacitor()
 			constant(-1.)));
 }
 
+void boundary::make_capacitor_with_dielectric()
+{
+  Xmin = -1;
+  Xmax = 1;
+  Ymin = -1;
+  Ymax = 1;
+  Zmin = -1;
+  Zmax = 1;
+
+  double wall_thickness = 0.02;
+  double plate_separation = 0.4;
+  double plate_width = 1.2;
+  double plate_thickness = 0.04;
+  
+  // walls
+  add_volume(new volume(Xmin, Xmin + wall_thickness,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			constant(0.)));
+  add_volume(new volume(Xmax - wall_thickness, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			constant(0.)));
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymin + wall_thickness,
+			Zmin, Zmax,
+			constant(0.)));
+  add_volume(new volume(Xmin, Xmax,
+			Ymax - wall_thickness, Ymax,
+			Zmin, Zmax,
+			constant(0.)));
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(0.)));
+
+  // top plate
+  add_volume(new volume(-plate_width/2, plate_width/2,
+			-plate_width/2, plate_width/2,
+			plate_separation - plate_thickness/2, plate_separation + plate_thickness/2,
+			constant(1.)));
+  // bottom plate
+  add_volume(new volume(-plate_width/2, plate_width/2,
+			-plate_width/2, plate_width/2,
+			-plate_separation - plate_thickness/2, -plate_separation + plate_thickness/2,
+			constant(-1.)));
+  // dielectric in the gap
+  add_volume(new volume(-plate_width/4, plate_width/4,
+			-plate_width/4, plate_width/4,
+			-plate_separation/2, plate_separation/2,
+			4.));
+}
+
 void boundary::make_bulkPix()
 {
   periodicX = true;
@@ -144,6 +204,18 @@ void boundary::make_bulkPix()
 			    constant(padPotential)));
     }
   }
+
+  // // PCB is a dielectric with ep_r ~ 4.35
+  // add_volume(new volume(Xmin, Xmax,
+  // 			Ymin, Ymax,
+  // 			-padThickness/2, padThickness/2,
+  // 			4.35));
+
+  // backstop
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmin + wall_thickness,
+  			constant(-0.1)));
 }
 
 void boundary::make_bulkPixWeighting()
@@ -282,7 +354,8 @@ bool boundary::is_in_boundary(double x, double y, double z)
 {
   bool is_in_any = false;
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+    if ( ( volumes[i] -> type == "conductor" )
+	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
       is_in_any = true;
     }
   }
@@ -292,7 +365,8 @@ bool boundary::is_in_boundary(double x, double y, double z)
 double boundary::boundary_value(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+    if ( ( volumes[i] -> type == "conductor" )
+	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
       return volumes[i] -> V(x, y, z);
     }
   }

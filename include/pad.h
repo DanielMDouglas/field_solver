@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "scalar_field.h"
+#include "field.h"
 #include "path.h"
 
 class pad
@@ -18,15 +18,15 @@ class pad
   void add_response(double,
 		    double,
 		    std::vector <double>,
-		    scalarField <double> *,
-		    scalarField <double> *,
+		    field <double> *,
+		    field <double> *,
 		    boundary);
   void add_response(double,
 		    double,
 		    std::vector <double>,
 		    path *,
-		    scalarField <double> *,
-		    scalarField <double> *,
+		    field <double> *,
+		    field <double> *,
 		    boundary);
   void print_to_file(std::string);
 };

@@ -2,7 +2,7 @@
 #define INDUCTION_H
 
 #include "path.h"
-#include "scalar_field.h"
+#include "field.h"
 
 void handOpts(int, char const *);
 

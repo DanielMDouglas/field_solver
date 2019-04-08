@@ -23,6 +23,7 @@ class boundary
   boundary(std::string);
   void make_linear();
   void make_capacitor();
+  void make_capacitor_with_dielectric();
   void make_bulkPix();
   void make_bulkPixWeighting();
   void make_bulkWires();
