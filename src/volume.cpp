@@ -4,7 +4,7 @@
 volume::volume(double Xm = 0, double XM = 0,
 	       double Ym = 0, double YM = 0,
 	       double Zm = 0, double ZM = 0,
-	       double relative_permittivity = 500)
+	       double relative_permittivity = 1)
 {
   // dielectric constructor
   Xmin = Xm;

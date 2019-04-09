@@ -25,15 +25,10 @@ class boundary
   void make_capacitor();
   void make_capacitor_with_dielectric();
   void make_bulkPix();
+  void make_bulkPix_single();
   void make_bulkPixWeighting();
   void make_bulkWires();
   void add_volume(volume*);
-  void make_field_cage(double, double,
-		       double, double,
-		       double, double,
-		       double,
-		       double,
-		       double);
   bool is_in_boundary(double, double, double);
   double boundary_value(double, double, double);
   double permittivity(double, double, double);

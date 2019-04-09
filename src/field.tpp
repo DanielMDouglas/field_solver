@@ -5,14 +5,18 @@
 #include <cmath>
 #include <algorithm>
 #include <math.h>
+#include <boost/algorithm/string.hpp>
+
+#include <TFile.h>
+#include <TH3.h>
 
 #include "field.h"
 
 template <typename T>
 field<T>::field(std::vector <double> x,
-			    std::vector <double> y,
-			    std::vector <double> z,
-			    T init_val)
+		std::vector <double> y,
+		std::vector <double> z,
+		T init_val)
 {
   xSize = x.size();
   ySize = y.size();
@@ -28,9 +32,9 @@ field<T>::field(std::vector <double> x,
 
 template <typename T>
 field<T>::field(std::vector <double> x,
-			    std::vector <double> y,
-			    std::vector <double> z,
-			    std::function <T (double, double, double)> f)
+		std::vector <double> y,
+		std::vector <double> z,
+		std::function <T (double, double, double)> f)
 {
   xSize = x.size();
   ySize = y.size();
@@ -55,10 +59,10 @@ field<T>::field(std::vector <double> x,
 
 template <typename T>
 field<T>::field(boundary bound,
-			    int Nx,
-			    int Ny,
-			    int Nz,
-			    std::string type)
+		int Nx,
+		int Ny,
+		int Nz,
+		std::string type)
 {
   xSize = Nx;
   ySize = Ny;
@@ -109,10 +113,10 @@ field<T>::field(boundary bound,
 
 template <typename T>
 field<T>::field(boundary bound,
-			    std::vector <double> x_axis,
-			    std::vector <double> y_axis,
-			    std::vector <double> z_axis,
-			    std::string type)
+		std::vector <double> x_axis,
+		std::vector <double> y_axis,
+		std::vector <double> z_axis,
+		std::string type)
 {
   xSize = x_axis.size();
   ySize = y_axis.size();
@@ -164,50 +168,98 @@ field<T>::field(boundary bound,
 template <typename T>
 field<T>::field(std::string filename)
 {
-  std::ifstream inFile (filename.c_str());
+  std::vector<std::string> split;
+ 
+  boost::split(split, filename, [](char c){return c == '.';});
 
-  std::string entry;
-  double value;
-  int nLines = 0;
+  std::cout << "# Reading from " << filename << std::endl;
+  // std::cout << "which has extension " << split[1] << std::endl;
+  if ( split[1] == "root" ) {
+    // load root file
+    TFile * inFile = new TFile(filename.c_str());
 
-  std::vector <T> vals;
-
-  while (getline(inFile, entry, ',')) {
-    value = std::stod(entry);
-    if ( std::find ( x_space.begin(), x_space.end(), value ) == x_space.end() ) {
-      x_space.push_back(value);
+    // TH3D * hist = dynamic_cast <TH3D*> (inFile -> Get("field"));
+    TH3D * hist = static_cast <TH3D*> (inFile -> Get("field"));
+    std::cout << "got the thing" << std::endl;
+    
+    xSize = hist -> GetNbinsX();
+    std::cout << "nBinsX: " << xSize << std::endl;
+    x_space = std::vector <double> ();
+    for ( int i = 0; i < xSize; i++ ) {
+      x_space.push_back(hist -> GetXaxis() -> GetBinCenter(i));
     }
     
-    getline(inFile, entry, ',');
-    value = std::stod(entry);
-    if ( std::find ( y_space.begin(), y_space.end(), value ) == y_space.end() ) {
-      y_space.push_back(value);
+    ySize = hist -> GetNbinsY();
+    y_space = std::vector <double> ();
+    for ( int j = 0; j < ySize; j++ ) {
+      y_space.push_back(hist -> GetYaxis() -> GetBinCenter(j));
     }
-
-    getline(inFile, entry, ',');
-    value = std::stod(entry);
-    if ( std::find ( z_space.begin(), z_space.end(), value ) == z_space.end() ) {
-      z_space.push_back(value);
-    }
-
-    getline(inFile, entry, '\n');
-    vals.push_back(std::stod(entry));
     
-    nLines++;
+    zSize = hist -> GetNbinsZ();
+    z_space = std::vector <double> ();
+    for ( int k = 0; k < ySize; k++ ) {
+      z_space.push_back(hist -> GetZaxis() -> GetBinCenter(k));
+    }
+
+    values = new T [xSize*ySize*zSize];
+    
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  set(i, j, k, hist -> GetBinContent(i, j, k));
+	}
+      }
+    }
+
+    inFile -> Close();
   }
-  
-  inFile.close();
-  std::cout << "read " << nLines << " lines" << std::endl;
-  
-  xSize = x_space.size();
-  ySize = y_space.size();
-  zSize = z_space.size();
+  else {
+    // treat it as a plaintext file
+    std::ifstream inFile (filename.c_str());
 
-  // values = new std::array <T, nLines>;
-  values = new T [nLines];
+    std::string entry;
+    double value;
+    int nLines = 0;
+
+    std::vector <T> vals;
+
+    while (getline(inFile, entry, ',')) {
+      value = std::stod(entry);
+      if ( std::find ( x_space.begin(), x_space.end(), value ) == x_space.end() ) {
+	x_space.push_back(value);
+      }
+    
+      getline(inFile, entry, ',');
+      value = std::stod(entry);
+      if ( std::find ( y_space.begin(), y_space.end(), value ) == y_space.end() ) {
+	y_space.push_back(value);
+      }
+
+      getline(inFile, entry, ',');
+      value = std::stod(entry);
+      if ( std::find ( z_space.begin(), z_space.end(), value ) == z_space.end() ) {
+	z_space.push_back(value);
+      }
+
+      getline(inFile, entry, '\n');
+      vals.push_back(std::stod(entry));
+    
+      nLines++;
+    }
   
-  for ( int line_iter = 0; line_iter < nLines; line_iter++ ) {
-    values[line_iter] = vals[line_iter];
+    inFile.close();
+    std::cout << "read " << nLines << " lines" << std::endl;
+  
+    xSize = x_space.size();
+    ySize = y_space.size();
+    zSize = z_space.size();
+
+    // values = new std::array <T, nLines>;
+    values = new T [nLines];
+  
+    for ( int line_iter = 0; line_iter < nLines; line_iter++ ) {
+      values[line_iter] = vals[line_iter];
+    }
   }
 }
 
@@ -231,18 +283,44 @@ T field<T>::get(int i, int j, int k)
 template <typename T>
 void field<T>::print_to_file(std::string filename)
 {
-  std::ofstream outFile (filename.c_str());
-  for ( int i = 0; i < xSize; i++ ) {
-    for ( int j = 0; j < ySize; j++ ) {
-      for ( int k = 0; k < zSize; k++ ) {
-	outFile << x_space[i] << ','
-		<< y_space[j] << ','
-		<< z_space[k] << ','
-		<< get(i, j, k) << '\n';
+  std::vector <std::string> split;
+  boost::split(split, filename, [](char c){return c == '.';});
+  std::cout << "# Writing values to " << filename << std::endl;
+
+  if ( split[1] == "root" ) {
+    // write to root file
+    TFile * outFile = new TFile(filename.c_str(), "NEW");
+    
+    TH3D * hist = new TH3D ("field", "field",
+			    xSize, x_space[0], x_space[xSize-1],
+			    ySize, y_space[0], y_space[ySize-1],
+			    zSize, z_space[0], z_space[zSize-1]);
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  hist -> SetBinContent(i, j, k, get(i, j, k));
+	}
       }
     }
+
+    hist -> Write();
+    outFile -> Close();
   }
-  outFile.close();
+  else {
+    // treat it as a plaintext file
+    std::ofstream outFile (filename.c_str());
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  outFile << x_space[i] << ','
+		  << y_space[j] << ','
+		  << z_space[k] << ','
+		  << get(i, j, k) << '\n';
+	}
+      }
+    }
+    outFile.close();
+  }
 }
 
 template <typename T>

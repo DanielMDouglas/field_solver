@@ -9,6 +9,9 @@ boundary::boundary(std::string which)
   if ( which == "bulkPix" ) {
     make_bulkPix();
   }
+  if ( which == "bulkPixSingle" ) {
+    make_bulkPix_single();
+  }
   else if ( which == "bulkPixWeighting" ) {
     make_bulkPixWeighting();
   }
@@ -218,6 +221,55 @@ void boundary::make_bulkPix()
   			constant(-0.1)));
 }
 
+void boundary::make_bulkPix_single()
+{
+  // single pad version of bulkPix
+  
+  periodicX = true;
+  periodicY = true;
+    
+  Xmin = -0.2;
+  Xmax = 0.2;
+  Ymin = -0.2;
+  Ymax = 0.2;
+  Zmin = -0.2;
+  Zmax = 1.4;
+  
+  double wall_thickness = 0.01;
+
+  // want the e field to be 500V/cm,
+  // so "cathode" potential should be
+  // roughly 500V*Zmax
+  double cathode_potential = -0.5*Zmax;
+  // far cathode plane  
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(cathode_potential)));
+  
+  double padSize = 0.2;
+  double padThickness = 0.05;
+  double padPotential = 0.;
+
+  // make the pad
+  add_volume(new volume(-padSize/2, padSize/2,
+			-padSize/2, padSize/2,
+			-padThickness/2, padThickness/2,
+			constant(padPotential)));
+
+  // PCB is a dielectric with ep_r ~ 4.35
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			-padThickness/2, padThickness/2,
+  			4.35));
+
+  // backstop
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmin + wall_thickness,
+  			constant(-0.1)));
+}
+
 void boundary::make_bulkPixWeighting()
 {
   // periodicX = true;
@@ -315,33 +367,6 @@ void boundary::make_bulkWires()
 			    constant(wire_potential)));
     }
   }
-}
-
-void boundary::make_field_cage(double xLow, double xHigh,
-			       double yLow, double yHigh,
-			       double zLow, double zHigh,
-			       double wall_thickness,
-			       double intercept,
-			       double zSlope)
-{
-  // Field cage walls
-  
-  add_volume(new volume(xLow, xLow + wall_thickness,
-			yLow, yHigh,
-			zLow, zHigh,
-			linear(intercept, 0., 0., zSlope)));
-  add_volume(new volume(xHigh - wall_thickness, xHigh,
-			yLow, yHigh,
-			zLow, zHigh,
-			linear(intercept, 0., 0., zSlope)));
-  add_volume(new volume(xLow, xHigh,
-			yLow, yLow + wall_thickness,
-			zLow, zHigh,
-			linear(intercept, 0., 0., zSlope)));
-  add_volume(new volume(xLow, xHigh,
-			yHigh - wall_thickness, yHigh,
-			zLow, zHigh,
-			linear(intercept, 0., 0., zSlope)));
 }
 
 void boundary::add_volume(volume * newVol)
