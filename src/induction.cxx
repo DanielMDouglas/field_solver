@@ -13,8 +13,7 @@ std::string potFileName = "none";
 std::string weightFileName = "none";
 std::string geom = "bulkPix";
 
-std::string arrTimeFileName = "none";
-std::string pSeriesFileName = "none";
+std::string outFileName = "event.dat";
 
 void handleOpts(int argc, char const * argv[])
 {
@@ -34,11 +33,8 @@ void handleOpts(int argc, char const * argv[])
     if ( optValue.str() == "-g" ) {
       argValue >> geom;
     }
-    if ( optValue.str() == "-oa" ) {
-      argValue >> arrTimeFileName;
-    }
-    if ( optValue.str() == "-op" ) {
-      argValue >> pSeriesFileName;
+    if ( optValue.str() == "-o" ) {
+      argValue >> outFileName;
     }
   }
 
@@ -55,8 +51,7 @@ void handleOpts(int argc, char const * argv[])
 	    << "potential field:     " << potFileName << '\n'
 	    << "weighting field:     " << weightFileName << '\n'
 	    << "geometry:            " << geom << '\n'
-	    << "arrival time output: " << arrTimeFileName << '\n'
-	    << "pulse series output: " << pSeriesFileName << '\n'
+	    << "output:              " << outFileName << '\n'
 	    << std::endl;
 }
 
@@ -67,87 +62,51 @@ int main(int argc, char const * argv[])
   field <double> * potential = new field <double> (potFileName);
   field <double> * weight = new field <double> (weightFileName);
   boundary bound (geom);
-
-  pad * padList [85];
-  int nPads = 0;
-  
-  for ( int i = 0; i < 17; i++ ) {
-    double x = -3.2 + 0.4*i;
-    for ( int j = 0; j < 5; j++ ) {
-      double y = -0.8 + 0.4*j;
-      std::cout << x << '\t' << y << std::endl;
-      padList[nPads] = new pad(150, std::vector <double> {x, y, 0});
-      nPads++;
-    }
-  }
   
   // pad * centerPad = new pad(150, std::vector <double> {0,0,0});
   // pad * adjPad = new pad(150, std::vector <double> {0.4, 0, 0});
   // pad * diagPad = new pad(150, std::vector <double> {0.4, 0.4, 0});
 
-  std::ifstream inFile ("track_sample_small.dat");
-  std::string entry;
-  double value = 0;
-  
-  while ( getline(inFile, entry, '\t') ) {
-    std::vector <double> init_pos;
-    init_pos.push_back(std::stod(entry));
-
-    getline(inFile, entry, '\t');
-    init_pos.push_back(std::stod(entry));
-
-    getline(inFile, entry, '\t');
-    init_pos.push_back(std::stod(entry));
-
-    getline(inFile, entry, '\n');
-    double t0 = std::stod(entry);
-
-    std::cout << "New drift from "
-	      << "("  << init_pos[0]
-	      << ", " << init_pos[1]
-	      << ", " << init_pos[2]
-	      << ")"  << std::endl;
-
-    std::vector <double> driftPos = {fmod(init_pos[0], 0.4),
-				     fmod(init_pos[1], 0.4),
-				     init_pos[2]};
-
-    std::cout << "Calculating path from "
-	      << "("  << driftPos[0]
-	      << ", " << driftPos[1]
-	      << ", " << driftPos[2]
-	      << ")"  << std::endl;
+  int nPads = 16*16;
+  pad * padList [nPads];
+  int i = 0;
+  double pitch = 0.4;
+  for ( double x = 7.6; x >= 7.6 - 16*pitch; x -= pitch ) {
+    for ( double y = 5.2; y >= 5.2 - 16*pitch; y -= pitch ) {
+      padList[i] = new pad(10, std::vector <double> {x, y, 0});
+      i++;
+    }
+  }
+      
+  std::vector <double> trackOrigPos = {5, 4, 1.2};
+  std::vector <double> trackDir = {-0.707, -0.707, 0};
+  double trackLen = 6;
+  int Nsegments = 20;
+  double t0 = 0;
+  path * driftPaths [Nsegments];
+  for ( int i = 0; i < Nsegments; i++ ) {
+    double distance = trackLen*(float(i)/Nsegments);
+    std::vector <double> startingPos = trackOrigPos + trackDir*distance;
+    std::cout << startingPos[0] << std::endl;
+    std::vector <double> relativePos = {fmod(startingPos[0] + 0.2, 0.4) - 0.2,
+					fmod(startingPos[1] + 0.2, 0.4) - 0.2,
+					startingPos[2]};
     
-    path * driftPath;
-    drift_path(driftPos, potential, bound, driftPath);
-
-    driftPath -> shift(init_pos - driftPos);
-    
+    driftPaths[i] = new path (dt);
+    drift_path(relativePos , potential, bound, driftPaths[i]);
+    driftPaths[i] -> shift(startingPos - relativePos);
     for ( pad * thisPad: padList ) {
-      thisPad -> add_response(-e, t0, init_pos, driftPath,
+      thisPad -> add_response(-20*e, t0, startingPos, driftPaths[i],
 			      potential, weight, bound);
     }
-
-    delete driftPath;
   }
 
-  inFile.close();
-
-  for ( pad * thisPad: padList) {
-    std::ostringstream stringStream;
-    stringStream << "responses_small/"
-		 << thisPad -> center[0] << "_"
-		 << thisPad -> center[1] << "_response.dat";
-    thisPad -> print_to_file(stringStream.str());
-  }
-    
-  // for ( int i = 0; i < 100000; i++ ) {
-  //   double * t;
-  //   std::vector <double> * samplePos;
-  //   sample(std::vector <double> {0, 0, 10.}, t, samplePos);
-
-  //   // std::cout << &t << '\t' << &samplePos[0] << std::endl;
-  // }
+  padList[141] -> print_current_to_file("currentSeries.dat");
   
+  for ( pad * thisPad: padList ) {
+    thisPad -> calculate_output();
+    thisPad -> print_output_to_file(outFileName);
+  }
+
   return 0;
 }

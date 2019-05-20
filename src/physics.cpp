@@ -144,8 +144,7 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
   std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
   
   while ( true ) {
-    trajectory -> steps.push_back(pos);
-    std::cout << "doop" << std::endl;
+    // check OOB
     if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
 	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
 	 (pos[2] < b.Zmin) or (pos[2] > b.Zmax) ) {
@@ -153,23 +152,34 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
       trajectory -> fate = "OOB";
       break;
     }
-    std::cout << "scoop" << std::endl;
+    // check OOT
     if ( t >= dt*max_iter ) {
       std::cout << "particle timed out!" << std::endl;
       trajectory -> fate = "OOT";
       break;
     }
-    std::cout << "foop" << std::endl;
+    // check boundary
     if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
+      std::cout << "particle terminated in an electrode!" << std::endl;
+      trajectory -> fate = "conductor";
+      break;
+    }
+    // check volume
+    if ( b.is_in_volume(pos[0], pos[1], pos[2]) ) {
       std::cout << "particle terminated in a volume!" << std::endl;
       trajectory -> fate = "volume";
       break;
     }
+    // move forward one step
     else {
-      std::cout << "noop" << std::endl;
       // assume T = boiling point of Ar for now
-      pos = pos + driftV(E(pos, V), Tb)*dt;
-      std::cout << E(pos, V)[0] << '\t' << E(pos, V)[1] << '\t' << E(pos, V)[2] << std::endl;
+      std::vector <double> Efield = E(pos, V);
+      std::vector <double> vel = driftV(Efield, Tb);
+      
+      trajectory -> pos.push_back(pos);
+      trajectory -> vel.push_back(vel);
+       
+      pos = pos + vel*dt;
       t += dt;
     }
   }
@@ -180,10 +190,6 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
   std::cout << "Arrival time: " << t << std::endl;
   std::cout << "Fate: " << trajectory -> fate << std::endl;
   std::cout << std::endl;
-
-  std::cout << trajectory -> steps.size() << std::endl;
-
-  // return trajectory;
 }
 
 std::vector <double> ramo_induction(double q, path * driftPath, field <double> * weight)
@@ -191,9 +197,9 @@ std::vector <double> ramo_induction(double q, path * driftPath, field <double> *
 
   std::vector <double> pSeries;
   
-  for ( int i = 1; i < driftPath -> steps.size(); i++ ) {
-    std::vector <double> pos = driftPath -> steps[i];
-    std::vector <double> vel = ((driftPath -> steps[i]) + -1*(driftPath -> steps[i-1]))*(1/(driftPath -> dt));
+  for ( int i = 1; i < driftPath -> pos.size(); i++ ) {
+    std::vector <double> pos = driftPath -> pos[i];
+    std::vector <double> vel = driftPath -> vel[i];
     std::vector <double> eField = E(pos, weight);
 
     double induced_current = q*dot(vel, eField); // C / us

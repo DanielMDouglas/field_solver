@@ -12,7 +12,8 @@ class path
   double arrivalTime;
   double dt;
   std::string fate;
-  std::vector <std::vector <double>> steps;
+  std::vector <std::vector <double>> pos;
+  std::vector <std::vector <double>> vel;
 
   path(double);
   path(std::string);

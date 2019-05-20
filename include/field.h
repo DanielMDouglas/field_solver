@@ -8,7 +8,7 @@
 
 template <typename T>
 class field
-{ 
+{
  public:
   int xSize, ySize, zSize;
   T* values;
@@ -24,8 +24,8 @@ class field
 	std::vector <double>,
 	std::vector <double>,
 	std::function<T (double, double, double)>);
-  field(boundary, int, int, int, std::string);
-  field(boundary,
+  field(boundary*, int, int, int, std::string);
+  field(boundary*,
 	std::vector <double>,
 	std::vector <double>,
 	std::vector <double>,
@@ -40,9 +40,9 @@ class field
 
 #include "../src/field.tpp"
 
-double squared_sum(field <double>);
-double squared_sum(field <double>, field <bool>);
-double squared_diff(field <double>, field <double>);
-double squared_diff(field <double>, field <double>, field <bool>);
+double squared_sum(field <double> *);
+double squared_sum(field <double> *, field <bool> *);
+double squared_diff(field <double> *, field <double> *);
+double squared_diff(field <double> *, field <double> *, field <bool> *);
 
 #endif

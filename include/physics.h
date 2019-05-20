@@ -10,6 +10,7 @@
 const double dt = 1.e-4; // us
 const double Tb = 87.302; // boiling temperature of LAr
 const double e = 1.603e-19; // C
+const double ep0 = 8.85e-11; // C/(kV*cm)
 const double pi = 4*atan(1);
 
 std::vector <double> E(std::vector <double>, field <double>*);

@@ -58,7 +58,7 @@ field<T>::field(std::vector <double> x,
 }
 
 template <typename T>
-field<T>::field(boundary bound,
+field<T>::field(boundary * bound,
 		int Nx,
 		int Ny,
 		int Nz,
@@ -68,9 +68,9 @@ field<T>::field(boundary bound,
   ySize = Ny;
   zSize = Nz;
 
-  x_space = linspace(bound.Xmin, bound.Xmax, Nx);
-  y_space = linspace(bound.Ymin, bound.Ymax, Ny);
-  z_space = linspace(bound.Zmin, bound.Zmax, Nz);
+  x_space = linspace(bound -> Xmin, bound -> Xmax, Nx);
+  y_space = linspace(bound -> Ymin, bound -> Ymax, Ny);
+  z_space = linspace(bound -> Zmin, bound -> Zmax, Nz);
 
   values = new T [Nx*Ny*Nz];
   
@@ -79,9 +79,9 @@ field<T>::field(boundary bound,
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
 	  set(i, j, k,
-	      bound.boundary_value(x_space[i],
-				   y_space[j],
-				   z_space[k]));
+	      bound -> boundary_value(x_space[i],
+				      y_space[j],
+				      z_space[k]));
 	}
       }
     }
@@ -91,9 +91,21 @@ field<T>::field(boundary bound,
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
 	  set(i, j, k,
-	      bound.permittivity(x_space[i],
-				 y_space[j],
-				 z_space[k]));
+	      bound -> permittivity(x_space[i],
+				    y_space[j],
+				    z_space[k]));
+	}
+      }
+    }
+  }
+  else if ( type == "conductivity" ) {
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  set(i, j, k,
+	      bound -> conductivity(x_space[i],
+				    y_space[j],
+				    z_space[k]));
 	}
       }
     }
@@ -102,9 +114,9 @@ field<T>::field(boundary bound,
     for ( int i = 0; i < xSize; i++ ) {
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k, bound.is_in_boundary(x_space[i],
-					    y_space[j],
-					    z_space[k]));
+	  set(i, j, k, bound -> is_in_boundary(x_space[i],
+					       y_space[j],
+					       z_space[k]));
 	}
       }
     }
@@ -112,7 +124,7 @@ field<T>::field(boundary bound,
 }
 
 template <typename T>
-field<T>::field(boundary bound,
+field<T>::field(boundary * bound,
 		std::vector <double> x_axis,
 		std::vector <double> y_axis,
 		std::vector <double> z_axis,
@@ -133,9 +145,9 @@ field<T>::field(boundary bound,
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
 	  set(i, j, k,
-	      bound.boundary_value(x_space[i],
-				   y_space[j],
-				   z_space[k]));
+	      bound -> boundary_value(x_space[i],
+				      y_space[j],
+				      z_space[k]));
 	}
       }
     }
@@ -145,9 +157,21 @@ field<T>::field(boundary bound,
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
 	  set(i, j, k,
-	      bound.permittivity(x_space[i],
-				 y_space[j],
-				 z_space[k]));
+	      bound -> permittivity(x_space[i],
+				    y_space[j],
+				    z_space[k]));
+	}
+      }
+    }
+  }
+  else if ( type == "conductivity" ) {
+    for ( int i = 0; i < xSize; i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	for ( int k = 0; k < zSize; k++ ) {
+	  set(i, j, k,
+	      bound -> conductivity(x_space[i],
+				    y_space[j],
+				    z_space[k]));
 	}
       }
     }
@@ -156,9 +180,9 @@ field<T>::field(boundary bound,
     for ( int i = 0; i < xSize; i++ ) {
       for ( int j = 0; j < ySize; j++ ) {
 	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k, bound.is_in_boundary(x_space[i],
-					    y_space[j],
-					    z_space[k]));
+	  set(i, j, k, bound -> is_in_boundary(x_space[i],
+					       y_space[j],
+					       z_space[k]));
 	}
       }
     }
@@ -180,10 +204,8 @@ field<T>::field(std::string filename)
 
     // TH3D * hist = dynamic_cast <TH3D*> (inFile -> Get("field"));
     TH3D * hist = static_cast <TH3D*> (inFile -> Get("field"));
-    std::cout << "got the thing" << std::endl;
     
     xSize = hist -> GetNbinsX();
-    std::cout << "nBinsX: " << xSize << std::endl;
     x_space = std::vector <double> ();
     for ( int i = 0; i < xSize; i++ ) {
       x_space.push_back(hist -> GetXaxis() -> GetBinCenter(i));
@@ -248,7 +270,7 @@ field<T>::field(std::string filename)
     }
   
     inFile.close();
-    std::cout << "read " << nLines << " lines" << std::endl;
+    std::cout << "# read " << nLines << " lines" << std::endl;
   
     xSize = x_space.size();
     ySize = y_space.size();
@@ -422,7 +444,7 @@ std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
   int yLowInd = i-1;
   int yHighInd = i;
 
-  spacing[1] = x_space[yHighInd] - x_space[yLowInd];
+  spacing[1] = y_space[yHighInd] - y_space[yLowInd];
   
   i = 0;
   while ( z_space[i] < pos[2] ) {
@@ -431,7 +453,7 @@ std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
   int zLowInd = i-1;
   int zHighInd = i;
 
-  spacing[2] = x_space[zHighInd] - x_space[zLowInd];
+  spacing[2] = z_space[zHighInd] - z_space[zLowInd];
   
   // x grad
   // interpolate in y and z
@@ -486,7 +508,7 @@ std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
       grad[2] -= lowProd;
     }
   }
-
+  
   for ( int n: {0, 1, 2} ) {
     grad = grad*(1./spacing[n]);
   }

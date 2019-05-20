@@ -14,12 +14,17 @@ class volume
   double Zmin, Zmax;
   std::vector <double> center;
   std::string type;
-  double er;
+  std::function<double (double, double, double)> er;
+  std::function<double (double, double, double)> sigma;
   bool isSensitive = false;
   
   volume(double, double, double,
 	 double, double, double,
-	 double);
+	 double, double);
+  volume(double, double, double,
+	 double, double, double,
+	 std::function<double (double, double, double)>,
+	 std::function<double (double, double, double)>);
   volume(double, double, double,
 	 double, double, double,
 	 std::function<double (double, double, double)>);

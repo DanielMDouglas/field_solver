@@ -22,6 +22,12 @@ class boundary
   
   boundary(std::string);
   void make_linear();
+  void make_linear_cond_defect();
+  void make_linear_diel_defect();
+  void make_sheet();
+  void make_sheet_cond_defect();
+  void make_sheet_random_cond_defect();
+  void make_sheet_diel_defect();
   void make_capacitor();
   void make_capacitor_with_dielectric();
   void make_bulkPix();
@@ -30,8 +36,10 @@ class boundary
   void make_bulkWires();
   void add_volume(volume*);
   bool is_in_boundary(double, double, double);
+  bool is_in_volume(double, double, double);
   double boundary_value(double, double, double);
   double permittivity(double, double, double);
+  double conductivity(double, double, double);
 };
 
 #endif

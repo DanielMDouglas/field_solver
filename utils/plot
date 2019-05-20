@@ -42,7 +42,7 @@ def choose_slice(x, y, z, values, choice):
     return u, v, selec
 
 if __name__ == '__main__':
-    infileNames = sys.argv[1:-2]
+    infileNames = [arg for arg in sys.argv if ".dat" in arg]
     choice_string = sys.argv[-2]
     title = sys.argv[-1]
     
@@ -55,15 +55,36 @@ if __name__ == '__main__':
     for infileName in infileNames:
         x, y, z, values = read_csv(infileName)
         u, v, selec = choose_slice(x, y, z, values, choice_string)
+
+        if '-r' in sys.argv:
+            val = sys.argv[sys.argv.index('-r') + 1]
+            uMin = int(val.split(',')[0])
+            uMax = int(val.split(',')[1])
+            vMin = int(val.split(',')[2])
+            vMax = int(val.split(',')[3])
+        else:
+            uMin = 0
+            uMax = len(u)
+            vMin = 0
+            vMax = len(v)
         
         plt.figure()
-        cmesh = plt.pcolormesh(v, u, selec.T, cmap = 'Blues')
+        cmesh = plt.pcolormesh(v[vMin:vMax],
+                               u[uMin:uMax],
+                               selec.T[uMin:uMax, vMin:vMax],
+                               cmap = 'Blues')
         cb = plt.colorbar()
 
-        plt.contour(v, u, selec.T, 20)
+        plt.contour(v[vMin:vMax],
+                    u[uMin:uMax],
+                    selec.T[uMin:uMax, vMin:vMax],
+                    20)
         
         plt.title(title)
         plt.xlabel(r'$x$ [cm]')
         plt.ylabel(r'$z$ [cm]')
 
-        plt.show()
+        if "-s" in sys.argv:
+            plt.savefig(infileName.replace(".dat", ".png"))
+        else:
+            plt.show()

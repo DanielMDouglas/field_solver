@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <TRandom3.h>
 
 #include "boundary.h"
 #include "pad.h"
@@ -20,6 +21,24 @@ boundary::boundary(std::string which)
   }
   else if ( which == "linear" ) {
     make_linear();
+  }
+  else if ( which == "linear_cond" ) {
+    make_linear_cond_defect();
+  }
+  else if ( which == "linear_diel" ) {
+    make_linear_diel_defect();
+  }
+  else if ( which == "sheet" ) {
+    make_sheet();
+  }
+  else if ( which == "sheet_cond" ) {
+    make_sheet_cond_defect();
+  }
+  else if ( which == "sheet_rand_cond" ) {
+    make_sheet_random_cond_defect();
+  }
+  else if ( which == "sheet_diel" ) {
+    make_sheet_diel_defect();
   }
   else if ( which == "cap" ) {
     make_capacitor();
@@ -54,6 +73,294 @@ void boundary::make_linear()
 			Ymin, Ymax,
 			Zmax - wall_thickness, Zmax,
 			constant(1.)));
+
+  // main volume, no irregularities
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			constant(1),
+  			constant(1)));
+}
+
+void boundary::make_linear_cond_defect()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 1;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
+
+  // main volume, conductivity variation
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			constant(1),
+  			gaussian((Xmax - Xmin)/2,
+  				 (Ymax - Ymin)/2,
+  				 (Zmax - Zmin)/2,
+  				 0.1, 1, -0.75)));
+}
+
+void boundary::make_linear_diel_defect()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 1;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
+
+  // main volume, permittivity variation
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			gaussian((Xmax - Xmin)/2,
+  				 (Ymax - Ymin)/2,
+  				 (Zmax - Zmin)/2,
+  				 0.1, 1, 5),
+  			constant(1)));
+}
+
+void boundary::make_sheet()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 0.03;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
+
+  // main volume, no irregularities
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			constant(1),
+  			constant(0)));
+}
+
+void boundary::make_sheet_cond_defect()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 0.03;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
+
+  // main volume, conductivity variation
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			constant(1),
+  			gaussian((Xmax - Xmin)/2,
+  				 (Ymax - Ymin)/2,
+  				 (Zmax - Zmin)/2,
+  				 0.1, 1, -1)));
+}
+
+void boundary::make_sheet_random_cond_defect()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 0.03;  
+  Zmin = 0;
+  Zmax = 5;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(2500.)));
+
+  // main volume, conductivity variation
+  double nomCond = 1.e-12; // not accurate
+  double nomDiel = 3.5;
+  int Ndefects = 500;
+  double stdDefectSize = 1.e-12; // this determines the magnitude
+  double stdDefectWidth = 0.1; // this determines the scale
+
+  std::vector <std::function <double (double, double, double)>> defectList = {};
+
+  TRandom3 * rng = new TRandom3();
+  for ( int i = 0; i < Ndefects; i++ ) { 
+    double height = rng -> Gaus(); // drawn from a normal distribution
+    double locX = rng -> Uniform(Xmin, Xmax); // drawn from a uniform distribution
+    double locY = (Ymax - Ymin)/2; // fixed
+    double locZ = rng -> Uniform(Zmin, Zmax); // drawn from a uniform distribution
+
+    defectList.push_back(gaussian(locX,
+				  locY,
+				  locZ,
+				  stdDefectWidth, 0, height));
+  }
+  // sum up all of the defects
+  // mean should be 0
+  std::function <double (double, double, double)> cond_func = func_sum(defectList);
+  // find the standard deviation from a statistical sample
+  // maybe put this into a function?
+  int Nsamples = 100000;
+  // double mean = 0;
+  double std = 0;
+  for ( int i = 0; i < Nsamples; i++ ) {
+    double x = rng -> Uniform(Xmin, Xmax);
+    double y = rng -> Uniform(Ymin, Ymax);
+    double z = rng -> Uniform(Zmin, Zmax);
+
+    // mean += cond_func(x, y, z);
+    std += pow(cond_func(x, y, z), 2);
+  }
+  // mean /= Nsamples;
+  std /= (Nsamples - 1);
+  std = pow(std, 0.5);
+  // std::cout << "mean of the defects is " << mean << " (should be 0)" << std::endl;
+  // std::cout << "std of the defects is " << std << " (should be something?)" << std::endl;
+
+  cond_func = func_mul({cond_func, constant(stdDefectSize/(std*nomCond))});
+  cond_func = func_sum({cond_func, constant(1.)});
+  cond_func = func_mul({cond_func, constant(nomCond)}); 
+  cond_func = func_rect(cond_func);
+  
+  // mean = 0;
+  // std = 0;
+  // for ( int i = 0; i < Nsamples; i++ ) {
+  //   double x = rng -> Uniform(Xmin, Xmax);
+  //   double y = rng -> Uniform(Ymin, Ymax);
+  //   double z = rng -> Uniform(Zmin, Zmax);
+
+  //   mean += cond_func(x, y, z);
+  //   std += pow(cond_func(x, y, z) - nomCond, 2);
+  // }
+  // mean /= Nsamples;
+  // std /= (Nsamples - 1);
+  // std = pow(std, 0.5);
+  // std::cout << "mean of the defects is " << mean << " (should be 0)" << std::endl;
+  // std::cout << "std of the defects is " << std << " (should be something?)" << std::endl;
+
+  std::function <double (double, double, double)> diel_func = constant(nomDiel);
+  
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			diel_func,
+			cond_func));
+}
+
+void boundary::make_sheet_diel_defect()
+{
+  periodicX = true;
+  periodicY = true;
+  
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 0.03;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.01;
+
+  // low voltage (0) at z = 0
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			constant(0.)));
+
+  // high voltage (1) at z = 1
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(1.)));
+
+  // main volume, permittivity variation
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			gaussian((Xmax - Xmin)/2,
+  				 (Ymax - Ymin)/2,
+  				 (Zmax - Zmin)/2,
+  				 0.1, 1, 5),
+  			constant(1)));
 }
 
 void boundary::make_capacitor()
@@ -162,7 +469,12 @@ void boundary::make_capacitor_with_dielectric()
   add_volume(new volume(-plate_width/4, plate_width/4,
 			-plate_width/4, plate_width/4,
 			-plate_separation/2, plate_separation/2,
-			4.));
+			4., 0));
+  // material everywhere else
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			1., 0));
 }
 
 void boundary::make_bulkPix()
@@ -261,7 +573,7 @@ void boundary::make_bulkPix_single()
   add_volume(new volume(Xmin, Xmax,
   			Ymin, Ymax,
   			-padThickness/2, padThickness/2,
-  			4.35));
+  			4.35, 0));
 
   // backstop
   add_volume(new volume(Xmin, Xmax,
@@ -387,6 +699,17 @@ bool boundary::is_in_boundary(double x, double y, double z)
   return is_in_any;
 }
 
+bool boundary::is_in_volume(double x, double y, double z)
+{
+  bool is_in_any = false;
+  for ( int i = 0; i < nVolumes; i++ ) {
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      is_in_any = true;
+    }
+  }
+  return is_in_any;
+}
+
 double boundary::boundary_value(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
@@ -402,8 +725,18 @@ double boundary::permittivity(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
-      return volumes[i] -> er;
+      return volumes[i] -> er(x, y, z);
     }
   }
   return 1;
+}
+
+double boundary::conductivity(double x, double y, double z)
+{
+  for ( int i = 0; i < nVolumes; i++ ) {
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      return volumes[i] -> sigma(x, y, z);
+    }
+  }
+  return 0;
 }

@@ -4,7 +4,31 @@
 volume::volume(double Xm = 0, double XM = 0,
 	       double Ym = 0, double YM = 0,
 	       double Zm = 0, double ZM = 0,
-	       double relative_permittivity = 1)
+	       double relative_permittivity = 1,
+	       double conductivity = 0)
+{
+  // dielectric constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = constant(0);
+  type = "dielectric";
+  er = constant(relative_permittivity);
+  sigma = constant(conductivity);
+
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       std::function<double (double, double, double)> relative_permittivity = constant(1),
+	       std::function<double (double, double, double)> conductivity = constant(0))
 {
   // dielectric constructor
   Xmin = Xm;
@@ -16,6 +40,7 @@ volume::volume(double Xm = 0, double XM = 0,
   V = constant(0);
   type = "dielectric";
   er = relative_permittivity;
+  sigma = conductivity;
 
   center = std::vector <double> {0.5*(Xm + XM),
 				 0.5*(Ym + YM),
@@ -36,8 +61,9 @@ volume::volume(double Xm = 0, double XM = 0,
   Zmax = ZM;
   V = voltage_function;
   type = "conductor";
-  er = 99999; // should be infinite, but that would be too many 9's
-
+  er = constant(99999); // should be infinite, but that would be too many 9's
+  sigma = constant(99999);
+  
   center = std::vector <double> {0.5*(Xm + XM),
 				 0.5*(Ym + YM),
 				 0.5*(Zm + ZM)};

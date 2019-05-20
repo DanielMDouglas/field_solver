@@ -49,39 +49,49 @@ int main(int argc, char const * argv[])
   field <double> * potential = new field <double> (fieldFileName);
   boundary detector (geom);
   
-  const int nPaths = 102;
+  const int nPaths = 100;
 
-  // std::thread * threads [nPaths];
-  // path * trajectories [nPaths];
+  std::thread * threads [nPaths*nPaths];
+  path * trajectories [nPaths*nPaths];
 
-  double xi;
-  
-  std::vector <double> xi_space = linspace(-1.2, 1.2, nPaths);
-  for ( int i = 0; i < nPaths; i++ ) {
-    xi = xi_space[i];
-    path * driftPath;
-    drift_path(std::vector <double> {xi, 0, 1.75}, potential, detector, driftPath);
+  // double xi;
+  // double yi;
 
-    std::ostringstream stringStream;
-    stringStream << "paths/drift_from_" << xi << ".dat";
-    driftPath -> print_to_file(stringStream.str());
+  std::vector <double> xi_space = linspace(0., 0.195, nPaths);
+  std::vector <double> yi_space = linspace(0., 0.195, nPaths);
 
-    delete driftPath;
+  std::ofstream outFile ( "final_pos.dat");
+
+  for ( int i = 0; i < xi_space.size(); i++ ) {
+    double xi = xi_space[i];
+    for ( int j = 0; j < yi_space.size(); j++ ) {
+      double yi = yi_space[j];
+      threads[i*nPaths + j] = new std::thread ( drift_path,
+						std::vector <double> {xi, yi, 1.2},
+						potential,
+						detector,
+						std::ref(trajectories[i*nPaths + j]) );
+    }
+    for ( int j = 0; j < nPaths; j++ ) {
+      threads[i*nPaths + j] -> join();
+      std::vector <double> finalPos = trajectories[i*nPaths + j] -> pos.back();
+      if ( trajectories[i*nPaths + j] -> fate == "volume" ) {
+	outFile << finalPos[0] << '\t' << finalPos[1] << '\t'  << finalPos[2] << '\n';
+      }
+      delete trajectories[i*nPaths + j];
+    }
+    // std::ostringstream stringStream;
+    // stringStream << "paths/drift_from_" << xi << ".dat";
+    // trajectories[i] -> print_to_file(stringStream.str());
     
-    // threads[i] = new std::thread ( drift_path,
-    // 				   std::vector <double> {xi, 0, 1.75},
-    // 				   potential,
-    // 				   detector,
-    // 				   driftPath );
   }
-
-  // for ( int i = 0; i < nPaths; i++ ) {
-  //   xi = xi_space[i];
-  //   threads[i] -> join();
-  //   std::ostringstream stringStream;
-  //   stringStream << "paths/drift_from_" << xi << ".dat";
-  //   trajectories[i] -> print_to_file(stringStream.str());
+  outFile.close();
+  // for ( int i = 0; i < nPaths*nPaths; i++ ) {
+  //   std::vector <double> finalPos = trajectories[i] -> pos.back();
+  //   if ( trajectories[i] -> fate == "volume" ) {
+  //     std::cout << finalPos[0] << '\t' << finalPos[1] << '\t'  << finalPos[2] << std::endl;
+  //   }
   // }
-    
+
   return 0;
 }
