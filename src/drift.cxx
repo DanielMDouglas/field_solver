@@ -66,6 +66,7 @@ int main(int argc, char const * argv[])
 				   detector,
 				   std::ref(trajectories[i]) );
   }
+
   for ( int i = 0; i < nPaths; i++ ) {
     double xi = xi_space[i];
     threads[i] -> join();
