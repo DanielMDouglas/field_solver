@@ -49,49 +49,32 @@ int main(int argc, char const * argv[])
   field <double> * potential = new field <double> (fieldFileName);
   boundary detector (geom);
   
-  const int nPaths = 100;
+  const int nPaths = 50;
 
-  std::thread * threads [nPaths*nPaths];
-  path * trajectories [nPaths*nPaths];
+  std::thread * threads [nPaths];
+  path * trajectories [nPaths];
 
-  // double xi;
-  // double yi;
+  double yi = 0;
 
   std::vector <double> xi_space = linspace(0., 0.195, nPaths);
-  std::vector <double> yi_space = linspace(0., 0.195, nPaths);
-
-  std::ofstream outFile ( "final_pos.dat");
 
   for ( int i = 0; i < xi_space.size(); i++ ) {
     double xi = xi_space[i];
-    for ( int j = 0; j < yi_space.size(); j++ ) {
-      double yi = yi_space[j];
-      threads[i*nPaths + j] = new std::thread ( drift_path,
-						std::vector <double> {xi, yi, 1.2},
-						potential,
-						detector,
-						std::ref(trajectories[i*nPaths + j]) );
-    }
-    for ( int j = 0; j < nPaths; j++ ) {
-      threads[i*nPaths + j] -> join();
-      std::vector <double> finalPos = trajectories[i*nPaths + j] -> pos.back();
-      if ( trajectories[i*nPaths + j] -> fate == "volume" ) {
-	outFile << finalPos[0] << '\t' << finalPos[1] << '\t'  << finalPos[2] << '\n';
-      }
-      delete trajectories[i*nPaths + j];
-    }
-    // std::ostringstream stringStream;
-    // stringStream << "paths/drift_from_" << xi << ".dat";
-    // trajectories[i] -> print_to_file(stringStream.str());
-    
+    threads[i] = new std::thread ( drift_path,
+				   std::vector <double> {xi, yi, 1.2},
+				   potential,
+				   detector,
+				   std::ref(trajectories[i]) );
   }
-  outFile.close();
-  // for ( int i = 0; i < nPaths*nPaths; i++ ) {
-  //   std::vector <double> finalPos = trajectories[i] -> pos.back();
-  //   if ( trajectories[i] -> fate == "volume" ) {
-  //     std::cout << finalPos[0] << '\t' << finalPos[1] << '\t'  << finalPos[2] << std::endl;
-  //   }
-  // }
-
+  for ( int i = 0; i < nPaths; i++ ) {
+    double xi = xi_space[i];
+    threads[i] -> join();
+    path * thisTraj = trajectories[i];
+    std::ostringstream stringStream;
+    stringStream << "drift_from_" << xi << ".dat";
+    thisTraj -> print_to_file(stringStream.str());
+    delete thisTraj;
+  }
+  
   return 0;
 }

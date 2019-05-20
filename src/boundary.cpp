@@ -534,7 +534,7 @@ void boundary::make_bulkPix()
 }
 
 void boundary::make_bulkPix_single()
-{
+{ 
   // single pad version of bulkPix
   
   periodicX = true;
@@ -570,10 +570,11 @@ void boundary::make_bulkPix_single()
 			constant(padPotential)));
 
   // PCB is a dielectric with ep_r ~ 4.35
+  // and volume resistivity ~ 1.e8 MOhm cm
   add_volume(new volume(Xmin, Xmax,
   			Ymin, Ymax,
   			-padThickness/2, padThickness/2,
-  			4.35, 0));
+  			4.35, 1.e-14));
 
   // backstop
   add_volume(new volume(Xmin, Xmax,
