@@ -74,12 +74,6 @@ if __name__ == '__main__':
             vMin = 0
             vMax = len(v)
 
-        print v[vMin:vMax].shape
-        print v[vMin:vMax]
-        print u[uMin:uMax].shape
-        print u[uMin:uMax]
-        print selec.T[uMin:uMax, vMin:vMax].shape
-
         u_spacing = np.unique(np.diff(u))[0]
         u_edges = np.concatenate([u[uMin:uMax] - u_spacing/2, [u[uMin:uMax][-1] + u_spacing/2]])
 

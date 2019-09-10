@@ -14,10 +14,12 @@ std::string startingQ = "none";
 std::string outFileName = "final.dat";
 std::string geom = "bulkPix";
 int nIter = 100000;
+int iterFreq = 100;
 double tolerance = 1.e-15;
 double w = 1;
 int N = 0xdeadbeef; //previously 280
 double spacing = 0.01; // cm  
+bool verbose = false;
 
 void handleOpts(int argc, char const * argv[])
 {
@@ -43,6 +45,9 @@ void handleOpts(int argc, char const * argv[])
     if ( optValue.str() == "-n" ) {
       argValue >> nIter;
     }
+    if ( optValue.str() == "-f" ) {
+      argValue >> iterFreq;
+    }
     if ( optValue.str() == "-t" ) {
       argValue >> tolerance;
     }
@@ -55,18 +60,24 @@ void handleOpts(int argc, char const * argv[])
     if ( optValue.str() == "-s" ) {
       argValue >> spacing;
     }
+    if (optValue.str() == "-v" ) {
+      verbose = true;
+      opt--;
+    }
   }
 
   std::cout << "####################################" << '\n'
 	    << "# Using arguments: \n"
-	    << "# inFile:            " << startingSol << '\n'
-	    << "# outFile:           " << outFileName << '\n'
-	    << "# geometry:          " << geom << '\n'
-	    << "# max # iter:        " << nIter << '\n'
-	    << "# threshold:         " << tolerance << '\n'
-            << "# N vertices:        " << N << '\n'
-            << "# relaxation factor: " << w << '\n'
-	    << "# spacing:           " << spacing << '\n'
+	    << "# inFile:              " << startingSol << '\n'
+	    << "# outFile:             " << outFileName << '\n'
+	    << "# geometry:            " << geom << '\n'
+	    << "# max # iter:          " << nIter << '\n'
+	    << "# reporting frequency: " << iterFreq << '\n'
+	    << "# threshold:           " << tolerance << '\n'
+            << "# N vertices:          " << N << '\n'
+            << "# relaxation factor:   " << w << '\n'
+	    << "# spacing:             " << spacing << '\n'
+	    << "# verbose:             " << verbose << '\n'
 	    << "####################################" << std::endl;
 }
 
@@ -103,7 +114,8 @@ solver::solver(boundary * b, int N, double spacing)
     nPointsZ++;
   }
 
-  std::cout << "Npoints X: " << nPointsX << '\t'
+  std::cout << "# "
+	    << "Npoints X: " << nPointsX << '\t'
 	    << "Npoints Y: " << nPointsY << '\t'
 	    << "Npoints Z: " << nPointsZ << '\t'
 	    << std::endl;
@@ -139,7 +151,7 @@ solver::solver(boundary * b, int N, double spacing)
 			     
 
   // permittivity is defined everywhere
-  // this gets permittivity from each volume, defaulting to 1
+  // this gets permittivity from each volume, defaulting to 1 (vacuum)
   std::function <double (double, double, double)> epVal_func;
   epVal_func = std::function<double (double, double, double)> (std::bind(&boundary::permittivity,
 									 b,
@@ -351,7 +363,8 @@ solver::solver(boundary * b, int N, double spacing)
 
 void solver::solve_static()
 {
-  std::cout << "Iteration:"
+  std::cout << "#\n"
+	    << "# Iteration:"
 	    << '\t'
 	    << "Stepwise Difference Norm:"
 	    << std::endl;
@@ -419,15 +432,21 @@ void solver::solve_static()
       break;
     }
 
-    if ( iter % 100 == 0 ) {
+    if ( iter % iterFreq == 0 ) {
       // print out the squared_diff between current iteration and previous iteration
       double sqsm = squared_sum(resid, is_dirichlet);
-      std::cout << '\r'
-		<< iter << '\t' << '\t'
+      if ( not verbose ) {
+	std::cout << '\r';
+      }
+      std::cout << iter << '\t' << '\t'
 		<< sqsm << "        " << std::flush;
 		// << std::endl;
+      if ( verbose ) {
+	std::cout << '\n';
+      }
+
       if ( sqsm < tolerance ) {
-	std::cout << std::endl
+	std::cout << "#\n"
 		  << "# potential converged after "
 		  << iter
 		  << " iterations"
@@ -507,7 +526,7 @@ void solver::solve_static()
   std::cout << "# final stepwise difference: "
 	    << squared_sum(resid, is_dirichlet)
 	    << std::endl
-	    << std::endl;
+	    << "#\n";
 }
 
 void solver::accum_charge()
@@ -608,8 +627,8 @@ int main(int argc, char const * argv[])
   thisSolver.epVal -> print_to_file("perm_map.dat");
   thisSolver.potential -> print_to_file("initial.dat");
   
-  thisSolver.solve_charge();
-  // thisSolver.solve_static();
+  // thisSolver.solve_charge();
+  thisSolver.solve_static();
   thisSolver.potential -> print_to_file(outFileName);
   thisSolver.Q -> print_to_file("Q.dat");
     
