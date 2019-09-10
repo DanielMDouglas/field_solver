@@ -27,7 +27,7 @@ double squared_sum(field <double> * a)
 
 double squared_sum(field <double> * a, field <bool> * exclude)
 {
-  // return the squared sum of a field
+  // return the squared sum of a field where a boolean field is true
 
   double sum = 0;
   int n_points = 0;
@@ -46,7 +46,7 @@ double squared_sum(field <double> * a, field <bool> * exclude)
 
 double squared_diff(field <double> * a, field <double> * b)
 {
-  // return the squared differences of each field
+  // return the sum of squared differences of each field
 
   field <double> * temp = new field <double>(a -> x_space, a -> y_space, a -> z_space, 0.);
   for ( int i = 0; i < a -> xSize; i++ ) {
@@ -61,7 +61,7 @@ double squared_diff(field <double> * a, field <double> * b)
 
 double squared_diff(field <double> * a, field <double> * b, field <bool> * exclude)
 {
-  // return the squared differences of each field
+  // return the sum of squared differences of each field where a boolean field is true
 
   field <double> * temp = new field <double> (a -> x_space, a -> y_space, a -> z_space, constant(0.));
   for ( int i = 0; i < (a -> xSize)*(a -> ySize)*(a -> zSize); i++ ) {

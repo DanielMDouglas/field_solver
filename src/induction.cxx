@@ -63,49 +63,32 @@ int main(int argc, char const * argv[])
   field <double> * weight = new field <double> (weightFileName);
   boundary bound (geom);
   
-  // pad * centerPad = new pad(150, std::vector <double> {0,0,0});
-  // pad * adjPad = new pad(150, std::vector <double> {0.4, 0, 0});
-  // pad * diagPad = new pad(150, std::vector <double> {0.4, 0.4, 0});
-
-  int nPads = 16*16;
-  pad * padList [nPads];
-  int i = 0;
-  double pitch = 0.4;
-  for ( double x = 7.6; x >= 7.6 - 16*pitch; x -= pitch ) {
-    for ( double y = 5.2; y >= 5.2 - 16*pitch; y -= pitch ) {
-      padList[i] = new pad(10, std::vector <double> {x, y, 0});
-      i++;
-    }
-  }
-      
-  std::vector <double> trackOrigPos = {5, 4, 1.2};
-  std::vector <double> trackDir = {-0.707, -0.707, 0};
-  double trackLen = 6;
-  int Nsegments = 20;
+  int Nsegments = 50;
   double t0 = 0;
+  double dx = 0.01;
   path * driftPaths [Nsegments];
   for ( int i = 0; i < Nsegments; i++ ) {
-    double distance = trackLen*(float(i)/Nsegments);
-    std::vector <double> startingPos = trackOrigPos + trackDir*distance;
+    pad * centerPad = new pad(150, std::vector <double> {0,0,0});
+
+    double xi = i*dx;
+    std::vector <double> startingPos = {xi, 0, 0};
     std::cout << startingPos[0] << std::endl;
-    std::vector <double> relativePos = {fmod(startingPos[0] + 0.2, 0.4) - 0.2,
-					fmod(startingPos[1] + 0.2, 0.4) - 0.2,
-					startingPos[2]};
     
     driftPaths[i] = new path (dt);
-    drift_path(relativePos , potential, bound, driftPaths[i]);
-    driftPaths[i] -> shift(startingPos - relativePos);
-    for ( pad * thisPad: padList ) {
-      thisPad -> add_response(-20*e, t0, startingPos, driftPaths[i],
-			      potential, weight, bound);
-    }
-  }
+    drift_path(startingPos, potential, bound, driftPaths[i]);
 
-  padList[141] -> print_current_to_file("currentSeries.dat");
-  
-  for ( pad * thisPad: padList ) {
-    thisPad -> calculate_output();
-    thisPad -> print_output_to_file(outFileName);
+    centerPad -> add_response(e, t0, startingPos, driftPaths[i],
+			      potential, weight, bound);
+
+    std::stringstream responseFile;
+    responseFile << "responses/" << xi << ".dat";
+    centerPad -> print_current_to_file(responseFile.str());
+
+    std::stringstream driftPathFile;
+    driftPathFile << "paths/" << xi << ".dat";
+    driftPaths[i] -> print_to_file(driftPathFile.str());
+    
+    delete centerPad;
   }
 
   return 0;

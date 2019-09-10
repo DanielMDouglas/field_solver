@@ -21,6 +21,10 @@ class boundary
   bool periodicZ = false;
   
   boundary(std::string);
+
+  // make various geometries
+  void make_test();
+  void make_box_uneven_res();
   void make_linear();
   void make_linear_cond_defect();
   void make_linear_diel_defect();
@@ -34,10 +38,15 @@ class boundary
   void make_bulkPix_single();
   void make_bulkPixWeighting();
   void make_bulkWires();
+
   void add_volume(volume*);
-  bool is_in_boundary(double, double, double);
+
+  // get boundary attributes in spatial coordinates
+  bool is_in_conductor(double, double, double);
+  bool is_in_VN(double, double, double);
   bool is_in_volume(double, double, double);
   double boundary_value(double, double, double);
+  double Efield(double, double, double);
   double permittivity(double, double, double);
   double conductivity(double, double, double);
 };

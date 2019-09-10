@@ -24,6 +24,7 @@ volume::volume(double Xm = 0, double XM = 0,
 				 0.5*(Zm + ZM)};
 }
 
+
 volume::volume(double Xm = 0, double XM = 0,
 	       double Ym = 0, double YM = 0,
 	       double Zm = 0, double ZM = 0,
@@ -61,8 +62,34 @@ volume::volume(double Xm = 0, double XM = 0,
   Zmax = ZM;
   V = voltage_function;
   type = "conductor";
-  er = constant(99999); // should be infinite, but that would be too many 9's
-  sigma = constant(99999);
+  // er = constant(99999); // should be infinite, but that would be too many 9's
+  // sigma = constant(99999);
+  er = constant(1);
+  sigma = constant(0);
+  
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       double E = 0)
+{
+  // von Neumann boundary condition constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = constant(0);
+  Efield = E;
+  type = "VN";
+  // er = constant(99999); // should be infinite, but that would be too many 9's
+  er = constant(0);
+  sigma = constant(0);
   
   center = std::vector <double> {0.5*(Xm + XM),
 				 0.5*(Ym + YM),

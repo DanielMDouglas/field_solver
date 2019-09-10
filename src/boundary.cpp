@@ -10,6 +10,9 @@ boundary::boundary(std::string which)
   if ( which == "bulkPix" ) {
     make_bulkPix();
   }
+  if ( which == "box_uneven_res" ) {
+    make_box_uneven_res();
+  }
   if ( which == "bulkPixSingle" ) {
     make_bulkPix_single();
   }
@@ -46,6 +49,138 @@ boundary::boundary(std::string which)
   else if ( which == "cap_die" ) {
     make_capacitor_with_dielectric();
   }
+  else if ( which == "test" ) {
+    make_test();
+  }
+}
+
+void boundary::make_test()
+{
+  Xmin = 0;
+  Xmax = 1;
+  Ymin = 0;
+  Ymax = 1;
+  Zmin = 0;
+  Zmax = 1;
+
+  double wall_thickness = 0.2;
+  
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmin + wall_thickness,
+			-1));
+
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			constant(0)));
+
+  add_volume(new volume(Xmin, Xmin + wall_thickness,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			0));
+
+  add_volume(new volume(Xmax - wall_thickness, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			0));
+
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymin + wall_thickness,
+			Zmin, Zmax,
+			0));
+
+  add_volume(new volume(Xmin, Xmax,
+			Ymax - wall_thickness, Ymax,
+			Zmin, Zmax,
+			0));
+}
+
+void boundary::make_box_uneven_res()
+{
+  // periodicX = true;
+  periodicY = true;
+
+  Xmin = 0;
+  Xmax = 3;
+  Ymin = 0;
+  Ymax = 0.5;
+  Zmin = 0;
+  Zmax = 5;
+
+  double wall_thickness = 0.15;
+  double nom_res = 1.e12;
+  double percent_var = 0.1;
+  
+  // bottom wall
+  // "anode"
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmin + wall_thickness,
+  			// -0.1));
+  			constant(0.)));
+
+  // top wall
+  // "cathode"
+  // but really this a von Neumann b.c.
+  // so let's place it slightly outside of the volume
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmax - wall_thickness, Zmax,
+			// -0.5));
+			constant(2.5)));
+
+  // left wall
+  // -10% resistivity variation
+  add_volume(new volume(Xmin, Xmin + wall_thickness,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			// constant(1.)));
+  			constant(3.4),
+  			// constant(1./(nom_res))));
+			linear(0.5/(nom_res), 0, 0, 0.5/(nom_res)/2.5)));
+			
+  // right wall
+  // +10% resistivity variation
+  // add_volume(new volume(Xmax - wall_thickness, Xmax,
+  // 			Ymin, Ymax,
+  // 			Zmin, Zmax - wall_thickness,
+  // 			// constant(1.)));
+  // 			constant(3.4),
+  // 			constant(1./(nom_res))));
+
+  // back wall
+  // nominal resistivity
+  // add_volume(new volume(Xmin, Xmax,
+  // 			Ymin, Ymin + wall_thickness,
+  // 			Zmin, Zmax - wall_thickness,
+  // 			// constant(1.)));
+  // 			constant(3.4),
+  // 			constant(1./(nom_res))));
+
+  // front wall
+  // nominal variation
+  // add_volume(new volume(Xmin, Xmax,
+  // 			Ymax - wall_thickness, Ymax,
+  // 			Zmin, Zmax - wall_thickness,
+  // 			// constant(1.)));
+  // 			constant(3.4),
+  // 			constant(1./(nom_res))));
+
+  // // add a test block with really high permittivity...
+  // add_volume(new volume(0.4, 0.6,
+  // 			0.4, 0.6,
+  // 			0.4, 0.6,
+  // 			constant(100),
+  // 			constant(0)));
+
+  // main volume
+  // Liquid Argon
+  add_volume(new volume(Xmin, Xmax,
+  			Ymin, Ymax,
+  			Zmin, Zmax,
+  			constant(1.504),
+  			constant(0)));
 }
 
 void boundary::make_linear()
@@ -64,10 +199,10 @@ void boundary::make_linear()
 
   // low voltage (0) at z = 0
   add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			constant(0.)));
-
+  			Ymin, Ymax,
+  			Zmin, Zmin + wall_thickness,
+  			constant(0.)));
+  
   // high voltage (1) at z = 1
   add_volume(new volume(Xmin, Xmax,
 			Ymin, Ymax,
@@ -170,11 +305,17 @@ void boundary::make_sheet()
 
   double wall_thickness = 0.01;
 
-  // low voltage (0) at z = 0
+  // // low voltage (0) at z = 0
+  // add_volume(new volume(Xmin, Xmax,
+  // 			Ymin, Ymax,
+  // 			Zmin, Zmin + wall_thickness,
+  // 			constant(0.)));
+
+  // TEST: VN boundary below, which defaults to V = 0 for now
   add_volume(new volume(Xmin, Xmax,
 			Ymin, Ymax,
 			Zmin, Zmin + wall_thickness,
-			constant(0.)));
+			-1));
 
   // high voltage (1) at z = 1
   add_volume(new volume(Xmin, Xmax,
@@ -229,18 +370,20 @@ void boundary::make_sheet_cond_defect()
 
 void boundary::make_sheet_random_cond_defect()
 {
-  periodicX = true;
+  // periodicX = true;
   periodicY = true;
   
   Xmin = 0;
-  Xmax = 1;
+  Xmax = 3;
   Ymin = 0;
-  Ymax = 0.03;  
+  Ymax = 0.5;  
   Zmin = 0;
   Zmax = 5;
 
-  double wall_thickness = 0.01;
-
+  double wall_thickness = 0.15;
+  double nom_res = 1.e12;
+  double percent_var = 0.1;
+  
   // low voltage (0) at z = 0
   add_volume(new volume(Xmin, Xmax,
 			Ymin, Ymax,
@@ -251,13 +394,13 @@ void boundary::make_sheet_random_cond_defect()
   add_volume(new volume(Xmin, Xmax,
 			Ymin, Ymax,
 			Zmax - wall_thickness, Zmax,
-			constant(2500.)));
+			constant(2.5)));
 
   // main volume, conductivity variation
   double nomCond = 1.e-12; // not accurate
-  double nomDiel = 3.5;
+  double nomDiel = 3.4;
   int Ndefects = 500;
-  double stdDefectSize = 1.e-12; // this determines the magnitude
+  double stdDefectSize = 5.e-13; // this determines the magnitude
   double stdDefectWidth = 0.1; // this determines the scale
 
   std::vector <std::function <double (double, double, double)>> defectList = {};
@@ -319,11 +462,17 @@ void boundary::make_sheet_random_cond_defect()
 
   std::function <double (double, double, double)> diel_func = constant(nomDiel);
   
-  add_volume(new volume(Xmin, Xmax,
+  add_volume(new volume(Xmin, Xmin + wall_thickness,
   			Ymin, Ymax,
   			Zmin, Zmax,
   			diel_func,
 			cond_func));
+
+  add_volume(new volume(Xmin, Xmax,
+			Ymin, Ymax,
+			Zmin, Zmax,
+			constant(1.504),
+			constant(0)));
 }
 
 void boundary::make_sheet_diel_defect()
@@ -688,11 +837,23 @@ void boundary::add_volume(volume * newVol)
   nVolumes++;
 }
 
-bool boundary::is_in_boundary(double x, double y, double z)
+bool boundary::is_in_conductor(double x, double y, double z)
 {
   bool is_in_any = false;
   for ( int i = 0; i < nVolumes; i++ ) {
     if ( ( volumes[i] -> type == "conductor" )
+	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
+      is_in_any = true;
+    }
+  }
+  return is_in_any;
+}
+
+bool boundary::is_in_VN(double x, double y, double z)
+{
+  bool is_in_any = false;
+  for ( int i = 0; i < nVolumes; i++ ) {
+    if ( ( volumes[i] -> type == "VN" )
 	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
       is_in_any = true;
     }
@@ -722,6 +883,17 @@ double boundary::boundary_value(double x, double y, double z)
   return 0;
 }
 
+double boundary::Efield(double x, double y, double z)
+{
+  for ( int i = 0; i < nVolumes; i++ ) {
+    if ( ( volumes[i] -> type == "VN" )
+	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
+      return volumes[i] -> Efield;
+    }
+  }
+  return 0;
+}
+
 double boundary::permittivity(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
@@ -729,7 +901,7 @@ double boundary::permittivity(double x, double y, double z)
       return volumes[i] -> er(x, y, z);
     }
   }
-  return 1;
+  return 0;
 }
 
 double boundary::conductivity(double x, double y, double z)

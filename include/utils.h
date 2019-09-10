@@ -10,6 +10,7 @@ int wrap(int, bool, int);
 const std::vector <double> xhat = {1., 0., 0.};
 const std::vector <double> yhat = {0., 1., 0.};
 const std::vector <double> zhat = {0., 0., 1.};
+const std::vector <double> zero_vector = {0., 0., 0.};
 
 // handy vector initializer
 std::vector <double> linspace(double, double, int);

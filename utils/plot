@@ -48,12 +48,18 @@ if __name__ == '__main__':
     
     if not infileNames:
         print "Please specify the file to plot from!"
-        print "Usage: plot [fieldData.dat]"
+        print "Usage: plot [fieldData.dat] [choice] [title]"
+        print "[choice] should be an expression of a plane"
+        print "e.g. 'y = 5'"
 
         exit
 
     for infileName in infileNames:
         x, y, z, values = read_csv(infileName)
+        print "x: ", x.shape
+        print "y: ", y.shape
+        print "z: ", z.shape
+        print "vals: ", values.shape
         u, v, selec = choose_slice(x, y, z, values, choice_string)
 
         if '-r' in sys.argv:
@@ -67,14 +73,31 @@ if __name__ == '__main__':
             uMax = len(u)
             vMin = 0
             vMax = len(v)
-        
+
+        print v[vMin:vMax].shape
+        print v[vMin:vMax]
+        print u[uMin:uMax].shape
+        print u[uMin:uMax]
+        print selec.T[uMin:uMax, vMin:vMax].shape
+
+        u_spacing = np.unique(np.diff(u))[0]
+        u_edges = np.concatenate([u[uMin:uMax] - u_spacing/2, [u[uMin:uMax][-1] + u_spacing/2]])
+
+        v_spacing = np.unique(np.diff(v))[0]
+        v_edges = np.concatenate([v[vMin:vMax] - v_spacing/2, [v[vMin:vMax][-1] + v_spacing/2]])
+
         plt.figure()
-        cmesh = plt.pcolormesh(v[vMin:vMax],
-                               u[uMin:uMax],
-                               selec.T[uMin:uMax, vMin:vMax],
+        # cmesh = plt.pcolormesh(v[vMin:vMax],
+        #                        u[uMin:uMax],
+        #                        selec.T[uMin:uMax, vMin:vMax],
+        #                        cmap = 'Blues')
+        cmesh = plt.pcolormesh(v_edges,
+                               u_edges,
+                               selec.T,
+                               # selec.T[uMin:uMax, vMin:vMax],
                                cmap = 'Blues')
         cb = plt.colorbar()
-
+        
         plt.contour(v[vMin:vMax],
                     u[uMin:uMax],
                     selec.T[uMin:uMax, vMin:vMax],

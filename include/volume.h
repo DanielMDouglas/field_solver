@@ -8,7 +8,8 @@
 class volume
 {
  public:
-  std::function<double (double, double, double)> V;
+  std::function <double (double, double, double)> V;
+  double Efield = 0;
   double Xmin, Xmax;
   double Ymin, Ymax;
   double Zmin, Zmax;
@@ -17,7 +18,8 @@ class volume
   std::function<double (double, double, double)> er;
   std::function<double (double, double, double)> sigma;
   bool isSensitive = false;
-  
+
+  // dielectric constructor
   volume(double, double, double,
 	 double, double, double,
 	 double, double);
@@ -25,9 +27,13 @@ class volume
 	 double, double, double,
 	 std::function<double (double, double, double)>,
 	 std::function<double (double, double, double)>);
+  // conductor constructor
   volume(double, double, double,
 	 double, double, double,
 	 std::function<double (double, double, double)>);
+  volume(double, double, double,
+	 double, double, double,
+	 double);
   double get_voltage(double, double, double);
   bool is_in_boundary(double, double, double);
 };

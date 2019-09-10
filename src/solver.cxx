@@ -10,7 +10,8 @@
 
 volatile int sig_int = 0;
 std::string startingSol = "none";
-std::string outFileName = "final.root";
+std::string startingQ = "none";
+std::string outFileName = "final.dat";
 std::string geom = "bulkPix";
 int nIter = 100000;
 double tolerance = 1.e-15;
@@ -29,6 +30,9 @@ void handleOpts(int argc, char const * argv[])
     
     if ( optValue.str() == "-i" ) {
       argValue >> startingSol;
+    }
+    if ( optValue.str() == "-q" ) {
+      argValue >> startingQ;
     }
     if ( optValue.str() == "-o" ) {
       argValue >> outFileName;
@@ -114,23 +118,102 @@ solver::solver(boundary * b, int N, double spacing)
 
   // staggered axes are for the permittivity grid
   // I think there might need to be another point (nPoints) for periodic boundary purposes
-  std::vector <double> x_axis_staggered = linspace((b -> Xmin) + spacing/2, (b -> Xmax) + spacing/2, nPointsX);
-  std::vector <double> y_axis_staggered = linspace((b -> Ymin) + spacing/2, (b -> Ymax) + spacing/2, nPointsY);
-  std::vector <double> z_axis_staggered = linspace((b -> Zmin) + spacing/2, (b -> Zmax) + spacing/2, nPointsZ);  
+  std::vector <double> x_axis_staggered = linspace((b -> Xmin) - spacing/2,
+						   (b -> Xmax) + spacing/2,
+						   nPointsX + 1);
+  std::vector <double> y_axis_staggered = linspace((b -> Ymin) - spacing/2,
+						   (b -> Ymax) + spacing/2,
+						   nPointsY + 1);
+  std::vector <double> z_axis_staggered = linspace((b -> Zmin) - spacing/2,
+						   (b -> Zmax) + spacing/2,
+						   nPointsZ + 1);  
 
   // boundary voltage
-  bval = new field <double> (b, x_axis, y_axis, z_axis, "val");
+  std::function <double (double, double, double)> bval_func;
+  bval_func = std::function<double (double, double, double)> (std::bind(&boundary::boundary_value,
+									b,
+									std::placeholders::_1,
+									std::placeholders::_2,
+									std::placeholders::_3));
+  bval = new field <double> (x_axis, y_axis, z_axis, bval_func);
+			     
+
   // permittivity is defined everywhere
   // this gets permittivity from each volume, defaulting to 1
-  epVal = new field <double> (b, x_axis_staggered, y_axis_staggered, z_axis_staggered, "permittivity");
-  sigVal = new field <double> (b, x_axis_staggered, y_axis_staggered, z_axis_staggered, "conductivity");
-  // is this point inside of a conductor volume?
-  is_b = new field <bool> (b, x_axis, y_axis, z_axis, "bool");
-  // charge distribution
-  // start with 0 charge
-  Q = new field <double> (x_axis, y_axis, z_axis, constant(0.));
-  dQdt = new field <double> (x_axis, y_axis, z_axis, constant(0.));
+  std::function <double (double, double, double)> epVal_func;
+  epVal_func = std::function<double (double, double, double)> (std::bind(&boundary::permittivity,
+									 b,
+									 std::placeholders::_1,
+									 std::placeholders::_2,
+									 std::placeholders::_3));
+  epVal = new field <double> (x_axis_staggered,
+			      y_axis_staggered,
+			      z_axis_staggered,
+			      epVal_func);
 
+  std::function <double (double, double, double)> sigVal_func;
+  sigVal_func = std::function<double (double, double, double)> (std::bind(&boundary::conductivity,
+									  b,
+									  std::placeholders::_1,
+									  std::placeholders::_2,
+									  std::placeholders::_3));
+  sigVal = new field <double> (x_axis_staggered,
+			       y_axis_staggered,
+			       z_axis_staggered,
+			       sigVal_func);
+
+  // is this point inside of the volume?
+  std::function <bool (double, double, double)> is_in_vol_func;
+  is_in_vol_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_volume,
+									   b,
+									   std::placeholders::_1,
+									   std::placeholders::_2,
+									   std::placeholders::_3));
+  is_in_volume = new field <bool> (x_axis, y_axis, z_axis, is_in_vol_func);
+
+  // is this point inside of a conductor volume?
+  std::function <bool (double, double, double)> is_dirichlet_func;
+  is_dirichlet_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_conductor,
+									      b,
+									      std::placeholders::_1,
+									      std::placeholders::_2,
+									      std::placeholders::_3));
+  is_dirichlet = new field <bool> (x_axis, y_axis, z_axis, is_dirichlet_func);
+
+  // is this point inside of a von neumann BC?
+  std::function <bool (double, double, double)> is_vn_func;
+  is_vn_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_VN,
+								       b,
+								       std::placeholders::_1,
+								       std::placeholders::_2,
+								       std::placeholders::_3));
+  is_von_neumann = new field <bool> (x_axis, y_axis, z_axis, is_vn_func);
+
+  std::function <double (double, double, double)> vn_E_func;
+  vn_E_func = std::function<double (double, double, double)> (std::bind(&boundary::Efield,
+									b,
+									std::placeholders::_1,
+									std::placeholders::_2,
+									std::placeholders::_3));
+  von_neumann_dE = new field <double> (x_axis, y_axis, z_axis, vn_E_func);
+  for ( int i = 0; i < nPointsX; i++ ) {
+    for ( int j = 0; j < nPointsY; j++ ) {
+      for ( int k = 0; k < nPointsZ; k++ ) {
+	von_neumann_dE -> set(i, j, k, (von_neumann_dE -> get(i, j, k))*spacing);
+      }
+    }
+  }
+
+  // charge distribution
+  if ( startingQ == "none" ) {
+    // start with 0 charge
+    Q = new field <double> (x_axis, y_axis, z_axis, constant(0.));
+  }
+  else {
+    Q = new field <double> (startingQ);
+  }
+  dQdt = new field <double> (x_axis, y_axis, z_axis, constant(0.));
+  
   // field which will hold the iterative solution
   if ( startingSol == "none" ) {
     // if no starting solution is specified,
@@ -139,8 +222,10 @@ solver::solver(boundary * b, int N, double spacing)
     double xSlope = (b -> boundary_value(b -> Xmax, 0, 0) - b -> boundary_value(b -> Xmin, 0, 0))/(b -> Xmax - b -> Xmin);
     double ySlope = (b -> boundary_value(0, b -> Ymax, 0) - b -> boundary_value(0, b -> Ymin, 0))/(b -> Ymax - b -> Ymin);
     double zSlope = (b -> boundary_value(0, 0, b -> Zmax) - b -> boundary_value(0, 0, b -> Zmin))/(b -> Zmax - b -> Zmin);
+    // potential = new field <double> (x_axis, y_axis, z_axis,
+    // 				    linear(intercept, xSlope, ySlope, zSlope));
     potential = new field <double> (x_axis, y_axis, z_axis,
-				    linear(intercept, xSlope, ySlope, zSlope));
+				    constant(1));
   }
   else {
     // otherwise, starting potential is loaded from a file
@@ -169,38 +254,38 @@ solver::solver(boundary * b, int N, double spacing)
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
-	if ( is_b -> get(i, j, k) ) {
+	if ( is_dirichlet -> get(i, j, k) ) {
 	  // set initial boundary values
 	  potential -> set(i, j, k, bound -> boundary_value(x_axis[i],
-						 y_axis[j],
-						 z_axis[k]));
+							    y_axis[j],
+							    z_axis[k]));
 	}
 	else {	    
 	  // set permittivity coefficients
-	  double e111 = epVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ));
-	  double e011 = epVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ));
-	  double e101 = epVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j-1, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ));
-	  double e110 = epVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double e001 = epVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				     wrap(j-1, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ));
-	  double e010 = epVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double e100 = epVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j-1, bound -> periodicY, nPointsY),
-				     wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double e000 = epVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				     wrap(j-1, bound -> periodicY, nPointsY),
-				     wrap(k-1, bound -> periodicZ, nPointsZ));
+	  double e111 = epVal -> get(wrap(i+1, bound -> periodicX, nPointsX + 1),
+				     wrap(j+1, bound -> periodicY, nPointsY + 1),
+				     wrap(k+1, bound -> periodicZ, nPointsZ + 1));
+	  double e011 = epVal -> get(wrap(i, bound -> periodicX, nPointsX + 1),
+				     wrap(j+1, bound -> periodicY, nPointsY + 1),
+				     wrap(k+1, bound -> periodicZ, nPointsZ + 1));
+	  double e101 = epVal -> get(wrap(i+1, bound -> periodicX, nPointsX + 1),
+				     wrap(j, bound -> periodicY, nPointsY + 1),
+				     wrap(k+1, bound -> periodicZ, nPointsZ + 1));
+	  double e110 = epVal -> get(wrap(i+1, bound -> periodicX, nPointsX + 1),
+				     wrap(j+1, bound -> periodicY, nPointsY + 1),
+				     wrap(k, bound -> periodicZ, nPointsZ + 1));
+	  double e001 = epVal -> get(wrap(i, bound -> periodicX, nPointsX + 1),
+				     wrap(j, bound -> periodicY, nPointsY + 1),
+				     wrap(k+1, bound -> periodicZ, nPointsZ + 1));
+	  double e010 = epVal -> get(wrap(i, bound -> periodicX, nPointsX + 1),
+				     wrap(j+1, bound -> periodicY, nPointsY + 1),
+				     wrap(k, bound -> periodicZ, nPointsZ + 1));
+	  double e100 = epVal -> get(wrap(i+1, bound -> periodicX, nPointsX + 1),
+				     wrap(j, bound -> periodicY, nPointsY + 1),
+				     wrap(k, bound -> periodicZ, nPointsZ + 1));
+	  double e000 = epVal -> get(wrap(i, bound -> periodicX, nPointsX + 1),
+				     wrap(j, bound -> periodicY, nPointsY + 1),
+				     wrap(k, bound -> periodicZ, nPointsZ + 1));
 	  
 	  // corresponds to central point
 	  a0 -> set(i, j, k, 0.75*(e111 + e011 + e101 + e110
@@ -217,32 +302,32 @@ solver::solver(boundary * b, int N, double spacing)
 	  a5 -> set(i, j, k, 0.25*(e101 + e001 + e100 + e000));
 	  // corresponds to -1 in i direction
 	  a6 -> set(i, j, k, 0.25*(e011 + e001 + e010 + e000));
-	  	  
+	  
 	  // set conductivity coefficients
-	  double s111 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
+	  double s111 = sigVal -> get(wrap(i+1, bound -> periodicX, nPointsX),
+				      wrap(j+1, bound -> periodicY, nPointsY),
+				      wrap(k+1, bound -> periodicZ, nPointsZ));
+	  double s011 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
+				      wrap(j+1, bound -> periodicY, nPointsY),
+				      wrap(k+1, bound -> periodicZ, nPointsZ));
+	  double s101 = sigVal -> get(wrap(i+1, bound -> periodicX, nPointsX),
+				      wrap(j, bound -> periodicY, nPointsY),
+				      wrap(k+1, bound -> periodicZ, nPointsZ));
+	  double s110 = sigVal -> get(wrap(i+1, bound -> periodicX, nPointsX),
+				      wrap(j+1, bound -> periodicY, nPointsY),
+				      wrap(k, bound -> periodicZ, nPointsZ));
+	  double s001 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
+				      wrap(j, bound -> periodicY, nPointsY),
+				      wrap(k+1, bound -> periodicZ, nPointsZ));
+	  double s010 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
+				      wrap(j+1, bound -> periodicY, nPointsY),
+				      wrap(k, bound -> periodicZ, nPointsZ));
+	  double s100 = sigVal -> get(wrap(i+1, bound -> periodicX, nPointsX),
 				      wrap(j, bound -> periodicY, nPointsY),
 				      wrap(k, bound -> periodicZ, nPointsZ));
-	  double s011 = sigVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
+	  double s000 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
 				      wrap(j, bound -> periodicY, nPointsY),
 				      wrap(k, bound -> periodicZ, nPointsZ));
-	  double s101 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				      wrap(j-1, bound -> periodicY, nPointsY),
-				      wrap(k, bound -> periodicZ, nPointsZ));
-	  double s110 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				      wrap(j, bound -> periodicY, nPointsY),
-				      wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double s001 = sigVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				      wrap(j-1, bound -> periodicY, nPointsY),
-				      wrap(k, bound -> periodicZ, nPointsZ));
-	  double s010 = sigVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				      wrap(j, bound -> periodicY, nPointsY),
-				      wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double s100 = sigVal -> get(wrap(i, bound -> periodicX, nPointsX),
-				      wrap(j-1, bound -> periodicY, nPointsY),
-				      wrap(k-1, bound -> periodicZ, nPointsZ));
-	  double s000 = sigVal -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				      wrap(j-1, bound -> periodicY, nPointsY),
-				      wrap(k-1, bound -> periodicZ, nPointsZ));
 
 	  // corresponds to central point
 	  b0 -> set(i, j, k, 0.75*(s111 + s011 + s101 + s110 + s001 + s010 + s100 + s000));
@@ -275,7 +360,8 @@ void solver::solve_static()
     for ( int i = 0; i < nPointsX; i++ ) {
       for ( int j = 0; j < nPointsY; j++ ) {
 	for ( int k = 0; k < nPointsZ; k++ ) {
-	  if ( not is_b -> get(i, j, k) ) {
+	  if ( (not is_dirichlet -> get(i, j, k))
+	       and (not is_von_neumann -> get(i, j, k)) ) {
 	    double sum = 0;
 
 	    sum += a1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
@@ -297,6 +383,25 @@ void solver::solve_static()
 						       wrap(j, bound -> periodicY, nPointsY),
 						       wrap(k, bound -> periodicZ, nPointsZ));
 
+	    sum -= von_neumann_dE -> get(wrap(i-1, bound -> periodicX, nPointsX),
+					 wrap(j, bound -> periodicY, nPointsY),
+					 wrap(k, bound -> periodicZ, nPointsZ));
+	    sum -= von_neumann_dE -> get(wrap(i+1, bound -> periodicX, nPointsX),
+					 wrap(j, bound -> periodicY, nPointsY),
+					 wrap(k, bound -> periodicZ, nPointsZ));
+	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+					 wrap(j-1, bound -> periodicY, nPointsY),
+					 wrap(k, bound -> periodicZ, nPointsZ));
+	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+					 wrap(j+1, bound -> periodicY, nPointsY),
+					 wrap(k, bound -> periodicZ, nPointsZ));
+	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+					 wrap(j, bound -> periodicY, nPointsY),
+					 wrap(k-1, bound -> periodicZ, nPointsZ));
+	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+					 wrap(j, bound -> periodicY, nPointsY),
+					 wrap(k+1, bound -> periodicZ, nPointsZ));
+
 	    sum += (Q -> get(i, j, k))/ep0;
 	    sum /= a0 -> get(i, j, k);
 	    sum -= potential -> get(i, j, k);
@@ -316,7 +421,7 @@ void solver::solve_static()
 
     if ( iter % 100 == 0 ) {
       // print out the squared_diff between current iteration and previous iteration
-      double sqsm = squared_sum(resid, is_b);
+      double sqsm = squared_sum(resid, is_dirichlet);
       std::cout << '\r'
 		<< iter << '\t' << '\t'
 		<< sqsm << "        " << std::flush;
@@ -342,9 +447,65 @@ void solver::solve_static()
     }
 
   }
-  
+
+  // set the value of the potential where it is von Neumann
+  for ( int i = 0; i < nPointsX; i++ ) {
+    for ( int j = 0; j < nPointsY; j++ ) {
+      for ( int k = 0; k < nPointsZ; k++ ) {
+	if ( is_von_neumann -> get(i, j, k) ) {
+	  potential -> set(i, j, k, potential -> get(i, j, k-1) - von_neumann_dE -> get(i, j, k));
+	  
+	  // // each von Neumann grid point should have only one
+	  // // non-von Neumann neighbor, so go through each of them...
+	  // if ( (not is_von_neumann -> get(wrap(i+1, bound -> periodicX, nPointsX), j, k))
+	  //      and (is_in_volume -> get(wrap(i+1, bound -> periodicX, nPointsX), j, k)) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i+1 << " " << j << " " << k << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(wrap(i+1, bound -> periodicX, nPointsX), j, k));
+	  // }
+	  // else if ( (not is_von_neumann -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k))
+	  // 	    and (is_in_volume -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k)) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i-1 << " " << j << " " << k << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k));
+	  // }
+	  // else if ( (not is_von_neumann -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k))
+	  // 	    and (is_in_volume -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k)) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i << " " << j+1 << " " << k << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k));
+	  // }
+	  // else if ( (not is_von_neumann -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k))
+	  // 	    and (is_in_volume -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k)) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i << " " << j-1 << " " << k << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k));
+	  // }
+	  // else if ( (not is_von_neumann -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ)))
+	  // 	    and (is_in_volume -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ))) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i << " " << j << " " << k+1 << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ)));
+	  // }
+	  // else if ( (not is_von_neumann -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ)))
+	  // 	    and (is_in_volume -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ))) ) {
+	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
+	  //   // 	      << i << " " << j << " " << k-1 << std::endl;
+	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  // 		     - potential -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ)));
+	  // }
+	}
+      }
+    }
+  }
+
   std::cout << "# final stepwise difference: "
-	    << squared_sum(resid, is_b)
+	    << squared_sum(resid, is_dirichlet)
 	    << std::endl
 	    << std::endl;
 }
@@ -354,7 +515,7 @@ void solver::accum_charge()
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
-	if ( not is_b -> get(i, j, k) ) {
+	if ( not ( is_dirichlet -> get(i, j, k) or is_von_neumann -> get(i, j, k) ) ) {
 	  double sum = 0;
 
 	  sum += b1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
@@ -392,13 +553,13 @@ void solver::solve_charge()
   
   solve_static();
   accum_charge();
-  double sqsum = squared_sum(dQdt, is_b);
+  double sqsum = squared_sum(dQdt, is_dirichlet);
   std::cout << sqsum << std::endl;
-  std::cout << squared_sum(Q, is_b) << std::endl; 
+  std::cout << squared_sum(Q, is_dirichlet) << std::endl; 
   int t = 0;
-  double current_threshold = 1.e-8;
+  double current_threshold = 1.e-32;
   
-  while ( squared_sum(dQdt, is_b) > current_threshold ) {
+  while ( squared_sum(dQdt, is_dirichlet) > current_threshold ) {
 
     std::stringstream VfileName, QfileName;
     VfileName << "V_series/" << t << ".dat";
@@ -412,11 +573,11 @@ void solver::solve_charge()
 	for ( int k = 0; k < nPointsZ; k++ ) {
 	  Q -> set(i, j, k,
 		   (Q -> get(i, j, k))
-		   + (dQdt -> get(i, j, k))*dt*1.e-7);
+		   + (dQdt -> get(i, j, k))*dt*1.e2);
 	}
       }
     }
-    sqsum = squared_sum(dQdt, is_b);
+    sqsum = squared_sum(dQdt, is_dirichlet);
     solve_static();
     accum_charge();
 
@@ -425,7 +586,7 @@ void solver::solve_charge()
       break;
     }
     std::cout << "Squared sum of dQ/dt " << sqsum << std::endl;
-    std::cout << "Squared sum of Q " << squared_sum(Q, is_b) << std::endl;
+    std::cout << "Squared sum of Q " << squared_sum(Q, is_dirichlet) << std::endl;
 
     t++;
   }
@@ -444,15 +605,13 @@ int main(int argc, char const * argv[])
   boundary * detector = new boundary (geom);
   solver thisSolver (detector, N, spacing);
   thisSolver.sigVal -> print_to_file("cond_map.dat");
+  thisSolver.epVal -> print_to_file("perm_map.dat");
+  thisSolver.potential -> print_to_file("initial.dat");
+  
   thisSolver.solve_charge();
   // thisSolver.solve_static();
   thisSolver.potential -> print_to_file(outFileName);
   thisSolver.Q -> print_to_file("Q.dat");
-  
-  // thisSolver.solve_static();
-  // thisSolver.potential -> print_to_file(outFileName);
-  // thisSolver.accum_charge();
-  // thisSolver.dQdt -> print_to_file("drho.dat");
-  
+    
   return 0;
 }

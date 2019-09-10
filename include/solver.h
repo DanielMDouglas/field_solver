@@ -13,16 +13,20 @@ class solver
   int nPointsX;
   int nPointsY;
   int nPointsZ;
-  double spacing;
+  double spacing = 0.01;
 
   boundary * bound;
   
   field <double> * bval;
   field <double> * epVal;
   field <double> * sigVal;
-  field <bool> * is_b;
+  field <bool> * is_in_volume;
+  field <bool> * is_dirichlet;
+  field <bool> * is_von_neumann;
+  field <double> * von_neumann_dE;
   field <double> * Q;
   field <double> * dQdt;
+  field <double> * E;
   field <double> * potential;
 
   field <double> * resid;

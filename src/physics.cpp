@@ -159,7 +159,7 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
       break;
     }
     // check boundary
-    if ( b.is_in_boundary(pos[0], pos[1], pos[2]) ) {
+    if ( b.is_in_conductor(pos[0], pos[1], pos[2]) ) {
       std::cout << "particle terminated in an electrode!" << std::endl;
       trajectory -> fate = "conductor";
       break;

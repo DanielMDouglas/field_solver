@@ -10,7 +10,7 @@
 #include <TFile.h>
 #include <TH3.h>
 
-#include "field.h"
+// #include "field.h"
 
 template <typename T>
 field<T>::field(std::vector <double> x,
@@ -28,6 +28,16 @@ field<T>::field(std::vector <double> x,
 
   // values = std::vector< double > (xSize*ySize*zSize, init_val);
   // values = std::array <double, size>;
+
+  values = new T [xSize*ySize*zSize];
+  
+  for ( int i = 0; i < xSize; i++ ) {
+    for ( int j = 0; j < ySize; j++ ) {
+      for ( int k = 0; k < zSize; k++ ) {
+	set(i, j, k, init_val);
+      }
+    }
+  }
 }
 
 template <typename T>
@@ -52,138 +62,6 @@ field<T>::field(std::vector <double> x,
     for ( int j = 0; j < ySize; j++ ) {
       for ( int k = 0; k < zSize; k++ ) {
 	set(i, j, k, f(x[i], y[j], z[k]));
-      }
-    }
-  }
-}
-
-template <typename T>
-field<T>::field(boundary * bound,
-		int Nx,
-		int Ny,
-		int Nz,
-		std::string type)
-{
-  xSize = Nx;
-  ySize = Ny;
-  zSize = Nz;
-
-  x_space = linspace(bound -> Xmin, bound -> Xmax, Nx);
-  y_space = linspace(bound -> Ymin, bound -> Ymax, Ny);
-  z_space = linspace(bound -> Zmin, bound -> Zmax, Nz);
-
-  values = new T [Nx*Ny*Nz];
-  
-  if ( type == "val" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> boundary_value(x_space[i],
-				      y_space[j],
-				      z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "permittivity" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> permittivity(x_space[i],
-				    y_space[j],
-				    z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "conductivity" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> conductivity(x_space[i],
-				    y_space[j],
-				    z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "bool" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k, bound -> is_in_boundary(x_space[i],
-					       y_space[j],
-					       z_space[k]));
-	}
-      }
-    }
-  }
-}
-
-template <typename T>
-field<T>::field(boundary * bound,
-		std::vector <double> x_axis,
-		std::vector <double> y_axis,
-		std::vector <double> z_axis,
-		std::string type)
-{
-  xSize = x_axis.size();
-  ySize = y_axis.size();
-  zSize = z_axis.size();
-
-  x_space = x_axis;
-  y_space = y_axis;
-  z_space = z_axis;
-
-  values = new T [xSize*ySize*zSize];
-  
-  if ( type == "val" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> boundary_value(x_space[i],
-				      y_space[j],
-				      z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "permittivity" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> permittivity(x_space[i],
-				    y_space[j],
-				    z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "conductivity" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k,
-	      bound -> conductivity(x_space[i],
-				    y_space[j],
-				    z_space[k]));
-	}
-      }
-    }
-  }
-  else if ( type == "bool" ) {
-    for ( int i = 0; i < xSize; i++ ) {
-      for ( int j = 0; j < ySize; j++ ) {
-	for ( int k = 0; k < zSize; k++ ) {
-	  set(i, j, k, bound -> is_in_boundary(x_space[i],
-					       y_space[j],
-					       z_space[k]));
-	}
       }
     }
   }
@@ -295,7 +173,13 @@ template <typename T>
 T field<T>::get(int i, int j, int k)
 {
   if ( ( i == 0xdeadbeef ) or ( j == 0xdeadbeef ) or ( k == 0xdeadbeef ) ) {
-    return 0;
+    // if ( T == std::vector ) {
+    //   return {0, 0, 0};
+    // }
+    // else {
+    //   return 0;
+    // }
+    return T (0);
   }
   else {
     return values[ySize*zSize*i + zSize*j + k];

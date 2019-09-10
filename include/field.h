@@ -11,25 +11,22 @@ class field
 {
  public:
   int xSize, ySize, zSize;
-  T* values;
+  T * values;
   std::vector <double> x_space;
   std::vector <double> y_space;
   std::vector <double> z_space;
 
+  // constant
   field(std::vector <double>,
 	std::vector <double>,
 	std::vector <double>,
 	T);
+  // from function
   field(std::vector <double>,
 	std::vector <double>,
 	std::vector <double>,
 	std::function<T (double, double, double)>);
-  field(boundary*, int, int, int, std::string);
-  field(boundary*,
-	std::vector <double>,
-	std::vector <double>,
-	std::vector <double>,
-	std::string);
+  // from filename
   field(std::string);
   void set(int, int, int, T);
   T get(int, int, int);

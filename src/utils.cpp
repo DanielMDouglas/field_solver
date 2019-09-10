@@ -174,5 +174,10 @@ double mag(std::vector <double> vect)
 
 std::vector <double> norm(std::vector <double> vect)
 {
-  return (1./mag(vect))*vect;
+  if ( mag(vect) == 0 ) {
+    return zero_vector;
+  }
+  else {
+    return (1./mag(vect))*vect;
+  }
 }
