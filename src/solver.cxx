@@ -17,7 +17,7 @@ int nIter = 100000;
 int iterFreq = 100;
 double tolerance = 1.e-15;
 double w = 1;
-int N = 0xdeadbeef; //previously 280
+int N = 0xdeadbeef;
 double spacing = 0.01; // cm  
 bool verbose = false;
 

@@ -1,6 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <TRandom3.h>
+#include <nlohmann/json.hpp>
 
 #include "boundary.h"
 #include "pad.h"
@@ -24,6 +26,9 @@ boundary::boundary(std::string which)
   }
   else if ( which == "linear" ) {
     make_linear();
+  }
+  else if ( which == "json") {
+    make_from_json();
   }
   else if ( which == "linear_cond" ) {
     make_linear_cond_defect();
@@ -217,6 +222,42 @@ void boundary::make_linear()
   			constant(1)));
 }
 
+void boundary::make_from_json()
+{
+  nlohmann::json j;
+  std::ifstream i("linear.json");
+  i >> j;
+
+  std::cout << "# Building geometry: " << j["name"] << std::endl;
+
+  periodicX = j["periodicity"]["x"];
+  periodicY = j["periodicity"]["y"];
+  periodicZ = j["periodicity"]["z"];
+  
+  Xmin = j["bounds"]["xmin"];
+  Xmax = j["bounds"]["xmax"];
+  Ymin = j["bounds"]["ymin"];
+  Ymax = j["bounds"]["ymax"];
+  Zmin = j["bounds"]["zmin"];
+  Zmax = j["bounds"]["zmax"];
+
+  for ( nlohmann::json volume_json : j["volumes"] ) {
+    if ( volume_json["type"] == "conductor" ) {
+      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
+			    volume_json["ymin"], volume_json["ymax"],
+			    volume_json["zmin"], volume_json["zmax"],
+			    constant(volume_json["voltage"]["args"][0])));
+    }
+    else if ( volume_json["type"] == "dielectric" ) {
+      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
+			    volume_json["ymin"], volume_json["ymax"],
+			    volume_json["zmin"], volume_json["zmax"],
+			    constant(volume_json["permittivity"]["args"][0]),
+			    constant(volume_json["conductivity"]["args"][0])));
+    }
+  }
+}
+
 void boundary::make_linear_cond_defect()
 {
   periodicX = true;
@@ -287,7 +328,7 @@ void boundary::make_linear_diel_defect()
   			gaussian((Xmax - Xmin)/2,
   				 (Ymax - Ymin)/2,
   				 (Zmax - Zmin)/2,
-  				 0.1, 1, 5),
+  				 0.05, 1, 100),
   			constant(1)));
 }
 

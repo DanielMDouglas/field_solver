@@ -26,6 +26,7 @@ class boundary
   void make_test();
   void make_box_uneven_res();
   void make_linear();
+  void make_from_json();
   void make_linear_cond_defect();
   void make_linear_diel_defect();
   void make_sheet();
