@@ -81,3 +81,6 @@ endif()
 
 # install(TARGETS solver DESTINATION bin)
 # install(TARGETS drift DESTINATION bin)
+
+file(COPY geometries DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY utils DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

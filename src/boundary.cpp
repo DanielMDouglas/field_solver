@@ -7,55 +7,101 @@
 #include "boundary.h"
 #include "pad.h"
 
-boundary::boundary(std::string which)
+boundary::boundary(std::string inFileName)
 {
-  if ( which == "bulkPix" ) {
-    make_bulkPix();
-  }
-  if ( which == "box_uneven_res" ) {
-    make_box_uneven_res();
-  }
-  if ( which == "bulkPixSingle" ) {
-    make_bulkPix_single();
-  }
-  else if ( which == "bulkPixWeighting" ) {
-    make_bulkPixWeighting();
-  }
-  else if ( which == "bulkWires" ) {
-    make_bulkWires();
-  }
-  else if ( which == "linear" ) {
-    make_linear();
-  }
-  else if ( which == "json") {
-    make_from_json();
-  }
-  else if ( which == "linear_cond" ) {
-    make_linear_cond_defect();
-  }
-  else if ( which == "linear_diel" ) {
-    make_linear_diel_defect();
-  }
-  else if ( which == "sheet" ) {
-    make_sheet();
-  }
-  else if ( which == "sheet_cond" ) {
-    make_sheet_cond_defect();
-  }
-  else if ( which == "sheet_rand_cond" ) {
-    make_sheet_random_cond_defect();
-  }
-  else if ( which == "sheet_diel" ) {
-    make_sheet_diel_defect();
-  }
-  else if ( which == "cap" ) {
-    make_capacitor();
-  }
-  else if ( which == "cap_die" ) {
-    make_capacitor_with_dielectric();
-  }
-  else if ( which == "test" ) {
-    make_test();
+  nlohmann::json j;
+  std::ifstream i(inFileName);
+  i >> j;
+
+  std::cout << "# Building geometry: " << j["name"] << std::endl;
+
+  periodicX = j["periodicity"]["x"];
+  periodicY = j["periodicity"]["y"];
+  periodicZ = j["periodicity"]["z"];
+  
+  Xmin = j["bounds"]["xmin"];
+  Xmax = j["bounds"]["xmax"];
+  Ymin = j["bounds"]["ymin"];
+  Ymax = j["bounds"]["ymax"];
+  Zmin = j["bounds"]["zmin"];
+  Zmax = j["bounds"]["zmax"];
+
+  for ( nlohmann::json volume_json : j["volumes"] ) {
+    if ( volume_json["type"] == "conductor" ) {
+      std::function <double (double, double, double)> voltageFunction;
+      if ( volume_json["voltage"]["function_name"] == "constant" ) {
+	voltageFunction = constant(volume_json["voltage"]["args"][0]);
+      }
+      else if ( volume_json["voltage"]["function_name"] == "linear" ) {
+	voltageFunction = linear(volume_json["voltage"]["args"][0],
+				 volume_json["voltage"]["args"][1],
+				 volume_json["voltage"]["args"][2],
+				 volume_json["voltage"]["args"][3]);
+      }
+      else if ( volume_json["voltage"]["function_name"] == "gaussian" ) {
+	voltageFunction = gaussian(volume_json["voltage"]["args"][0],
+				   volume_json["voltage"]["args"][1],
+				   volume_json["voltage"]["args"][2],
+				   volume_json["voltage"]["args"][3],
+				   volume_json["voltage"]["args"][4],
+				   volume_json["voltage"]["args"][5]);
+      } 
+
+      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
+			    volume_json["ymin"], volume_json["ymax"],
+			    volume_json["zmin"], volume_json["zmax"],
+			    voltageFunction));
+    }
+    else if ( volume_json["type"] == "von Neumann" ) {
+      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
+			    volume_json["ymin"], volume_json["ymax"],
+			    volume_json["zmin"], volume_json["zmax"],
+			    volume_json["Efield"]));
+    }
+    else if ( volume_json["type"] == "dielectric" ) {
+      std::function <double (double, double, double)> permFunction;
+      if ( volume_json["permittivity"]["function_name"] == "constant" ) {
+	permFunction = constant(volume_json["permittivity"]["args"][0]);
+      }
+      else if ( volume_json["permittivity"]["function_name"] == "linear" ) {
+	permFunction = linear(volume_json["permittivity"]["args"][0],
+			      volume_json["permittivity"]["args"][1],
+			      volume_json["permittivity"]["args"][2],
+			      volume_json["permittivity"]["args"][3]);
+      }
+      else if ( volume_json["permittivity"]["function_name"] == "gaussian" ) {
+	permFunction = gaussian(volume_json["permittivity"]["args"][0],
+				volume_json["permittivity"]["args"][1],
+				volume_json["permittivity"]["args"][2],
+				volume_json["permittivity"]["args"][3],
+				volume_json["permittivity"]["args"][4],
+				volume_json["permittivity"]["args"][5]);
+      }
+
+      std::function <double (double, double, double)> condFunction;
+      if ( volume_json["conductivity"]["function_name"] == "constant" ) {
+	condFunction = constant(volume_json["conductivity"]["args"][0]);
+      }
+      else if ( volume_json["conductivity"]["function_name"] == "linear" ) {
+	condFunction = linear(volume_json["conductivity"]["args"][0],
+			      volume_json["conductivity"]["args"][1],
+			      volume_json["conductivity"]["args"][2],
+			      volume_json["conductivity"]["args"][3]);
+      }
+      else if ( volume_json["conductivity"]["function_name"] == "gaussian" ) {
+	condFunction = gaussian(volume_json["conductivity"]["args"][0],
+				volume_json["conductivity"]["args"][1],
+				volume_json["conductivity"]["args"][2],
+				volume_json["conductivity"]["args"][3],
+				volume_json["conductivity"]["args"][4],
+				volume_json["conductivity"]["args"][5]);
+      }
+
+      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
+			    volume_json["ymin"], volume_json["ymax"],
+			    volume_json["zmin"], volume_json["zmax"],
+			    permFunction, condFunction));
+    }
   }
 }
 
@@ -185,190 +231,6 @@ void boundary::make_box_uneven_res()
   			Ymin, Ymax,
   			Zmin, Zmax,
   			constant(1.504),
-  			constant(0)));
-}
-
-void boundary::make_linear()
-{
-  periodicX = true;
-  periodicY = true;
-  
-  Xmin = 0;
-  Xmax = 1;
-  Ymin = 0;
-  Ymax = 1;
-  Zmin = 0;
-  Zmax = 1;
-
-  double wall_thickness = 0.01;
-
-  // low voltage (0) at z = 0
-  add_volume(new volume(Xmin, Xmax,
-  			Ymin, Ymax,
-  			Zmin, Zmin + wall_thickness,
-  			constant(0.)));
-  
-  // high voltage (1) at z = 1
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(1.)));
-
-  // main volume, no irregularities
-  add_volume(new volume(Xmin, Xmax,
-  			Ymin, Ymax,
-  			Zmin, Zmax,
-  			constant(1),
-  			constant(1)));
-}
-
-void boundary::make_from_json()
-{
-  nlohmann::json j;
-  std::ifstream i("linear.json");
-  i >> j;
-
-  std::cout << "# Building geometry: " << j["name"] << std::endl;
-
-  periodicX = j["periodicity"]["x"];
-  periodicY = j["periodicity"]["y"];
-  periodicZ = j["periodicity"]["z"];
-  
-  Xmin = j["bounds"]["xmin"];
-  Xmax = j["bounds"]["xmax"];
-  Ymin = j["bounds"]["ymin"];
-  Ymax = j["bounds"]["ymax"];
-  Zmin = j["bounds"]["zmin"];
-  Zmax = j["bounds"]["zmax"];
-
-  for ( nlohmann::json volume_json : j["volumes"] ) {
-    if ( volume_json["type"] == "conductor" ) {
-      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
-			    volume_json["ymin"], volume_json["ymax"],
-			    volume_json["zmin"], volume_json["zmax"],
-			    constant(volume_json["voltage"]["args"][0])));
-    }
-    else if ( volume_json["type"] == "dielectric" ) {
-      add_volume(new volume(volume_json["xmin"], volume_json["xmax"],
-			    volume_json["ymin"], volume_json["ymax"],
-			    volume_json["zmin"], volume_json["zmax"],
-			    constant(volume_json["permittivity"]["args"][0]),
-			    constant(volume_json["conductivity"]["args"][0])));
-    }
-  }
-}
-
-void boundary::make_linear_cond_defect()
-{
-  periodicX = true;
-  periodicY = true;
-  
-  Xmin = 0;
-  Xmax = 1;
-  Ymin = 0;
-  Ymax = 1;
-  Zmin = 0;
-  Zmax = 1;
-
-  double wall_thickness = 0.01;
-
-  // low voltage (0) at z = 0
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			constant(0.)));
-
-  // high voltage (1) at z = 1
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(1.)));
-
-  // main volume, conductivity variation
-  add_volume(new volume(Xmin, Xmax,
-  			Ymin, Ymax,
-  			Zmin, Zmax,
-  			constant(1),
-  			gaussian((Xmax - Xmin)/2,
-  				 (Ymax - Ymin)/2,
-  				 (Zmax - Zmin)/2,
-  				 0.1, 1, -0.75)));
-}
-
-void boundary::make_linear_diel_defect()
-{
-  periodicX = true;
-  periodicY = true;
-  
-  Xmin = 0;
-  Xmax = 1;
-  Ymin = 0;
-  Ymax = 1;
-  Zmin = 0;
-  Zmax = 1;
-
-  double wall_thickness = 0.01;
-
-  // low voltage (0) at z = 0
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			constant(0.)));
-
-  // high voltage (1) at z = 1
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(1.)));
-
-  // main volume, permittivity variation
-  add_volume(new volume(Xmin, Xmax,
-  			Ymin, Ymax,
-  			Zmin, Zmax,
-  			gaussian((Xmax - Xmin)/2,
-  				 (Ymax - Ymin)/2,
-  				 (Zmax - Zmin)/2,
-  				 0.05, 1, 100),
-  			constant(1)));
-}
-
-void boundary::make_sheet()
-{
-  periodicX = true;
-  periodicY = true;
-  
-  Xmin = 0;
-  Xmax = 1;
-  Ymin = 0;
-  Ymax = 0.03;
-  Zmin = 0;
-  Zmax = 1;
-
-  double wall_thickness = 0.01;
-
-  // // low voltage (0) at z = 0
-  // add_volume(new volume(Xmin, Xmax,
-  // 			Ymin, Ymax,
-  // 			Zmin, Zmin + wall_thickness,
-  // 			constant(0.)));
-
-  // TEST: VN boundary below, which defaults to V = 0 for now
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			-1));
-
-  // high voltage (1) at z = 1
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(1.)));
-
-  // main volume, no irregularities
-  add_volume(new volume(Xmin, Xmax,
-  			Ymin, Ymax,
-  			Zmin, Zmax,
-  			constant(1),
   			constant(0)));
 }
 
@@ -551,120 +413,6 @@ void boundary::make_sheet_diel_defect()
   				 (Zmax - Zmin)/2,
   				 0.1, 1, 5),
   			constant(1)));
-}
-
-void boundary::make_capacitor()
-{
-  Xmin = -1;
-  Xmax = 1;
-  Ymin = -1;
-  Ymax = 1;
-  Zmin = -1;
-  Zmax = 1;
-
-  double wall_thickness = 0.02;
-  double plate_separation = 0.4;
-  double plate_width = 1.2;
-  double plate_thickness = 0.04;
-  
-  // walls
-  add_volume(new volume(Xmin, Xmin + wall_thickness,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmax - wall_thickness, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymin + wall_thickness,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymax - wall_thickness, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(0.)));
-
-  // top plate
-  add_volume(new volume(-plate_width/2, plate_width/2,
-			-plate_width/2, plate_width/2,
-			plate_separation - plate_thickness/2, plate_separation + plate_thickness/2,
-			constant(1.)));
-  // bottom plate
-  add_volume(new volume(-plate_width/2, plate_width/2,
-			-plate_width/2, plate_width/2,
-			-plate_separation - plate_thickness/2, -plate_separation + plate_thickness/2,
-			constant(-1.)));
-}
-
-void boundary::make_capacitor_with_dielectric()
-{
-  Xmin = -1;
-  Xmax = 1;
-  Ymin = -1;
-  Ymax = 1;
-  Zmin = -1;
-  Zmax = 1;
-
-  double wall_thickness = 0.02;
-  double plate_separation = 0.4;
-  double plate_width = 1.2;
-  double plate_thickness = 0.04;
-  
-  // walls
-  add_volume(new volume(Xmin, Xmin + wall_thickness,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmax - wall_thickness, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymin + wall_thickness,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymax - wall_thickness, Ymax,
-			Zmin, Zmax,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			constant(0.)));
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(0.)));
-
-  // top plate
-  add_volume(new volume(-plate_width/2, plate_width/2,
-			-plate_width/2, plate_width/2,
-			plate_separation - plate_thickness/2, plate_separation + plate_thickness/2,
-			constant(1.)));
-  // bottom plate
-  add_volume(new volume(-plate_width/2, plate_width/2,
-			-plate_width/2, plate_width/2,
-			-plate_separation - plate_thickness/2, -plate_separation + plate_thickness/2,
-			constant(-1.)));
-  // dielectric in the gap
-  add_volume(new volume(-plate_width/4, plate_width/4,
-			-plate_width/4, plate_width/4,
-			-plate_separation/2, plate_separation/2,
-			4., 0));
-  // material everywhere else
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			1., 0));
 }
 
 void boundary::make_bulkPix()
