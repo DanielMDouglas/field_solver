@@ -105,48 +105,6 @@ boundary::boundary(std::string inFileName)
   }
 }
 
-void boundary::make_test()
-{
-  Xmin = 0;
-  Xmax = 1;
-  Ymin = 0;
-  Ymax = 1;
-  Zmin = 0;
-  Zmax = 1;
-
-  double wall_thickness = 0.2;
-  
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmin + wall_thickness,
-			-1));
-
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymax,
-			Zmax - wall_thickness, Zmax,
-			constant(0)));
-
-  add_volume(new volume(Xmin, Xmin + wall_thickness,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			0));
-
-  add_volume(new volume(Xmax - wall_thickness, Xmax,
-			Ymin, Ymax,
-			Zmin, Zmax,
-			0));
-
-  add_volume(new volume(Xmin, Xmax,
-			Ymin, Ymin + wall_thickness,
-			Zmin, Zmax,
-			0));
-
-  add_volume(new volume(Xmin, Xmax,
-			Ymax - wall_thickness, Ymax,
-			Zmin, Zmax,
-			0));
-}
-
 void boundary::make_box_uneven_res()
 {
   // periodicX = true;

@@ -207,11 +207,11 @@ solver::solver(boundary * b, int N, double spacing)
 									std::placeholders::_1,
 									std::placeholders::_2,
 									std::placeholders::_3));
-  von_neumann_dE = new field <double> (x_axis, y_axis, z_axis, vn_E_func);
+  von_neumann_dV = new field <double> (x_axis, y_axis, z_axis, vn_E_func);
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
-	von_neumann_dE -> set(i, j, k, (von_neumann_dE -> get(i, j, k))*spacing);
+	von_neumann_dV -> set(i, j, k, (von_neumann_dV -> get(i, j, k))*spacing);
       }
     }
   }
@@ -396,22 +396,22 @@ void solver::solve_static()
 						       wrap(j, bound -> periodicY, nPointsY),
 						       wrap(k, bound -> periodicZ, nPointsZ));
 
-	    sum -= von_neumann_dE -> get(wrap(i-1, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i-1, bound -> periodicX, nPointsX),
 					 wrap(j, bound -> periodicY, nPointsY),
 					 wrap(k, bound -> periodicZ, nPointsZ));
-	    sum -= von_neumann_dE -> get(wrap(i+1, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i+1, bound -> periodicX, nPointsX),
 					 wrap(j, bound -> periodicY, nPointsY),
 					 wrap(k, bound -> periodicZ, nPointsZ));
-	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
 					 wrap(j-1, bound -> periodicY, nPointsY),
 					 wrap(k, bound -> periodicZ, nPointsZ));
-	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
 					 wrap(j+1, bound -> periodicY, nPointsY),
 					 wrap(k, bound -> periodicZ, nPointsZ));
-	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
 					 wrap(j, bound -> periodicY, nPointsY),
 					 wrap(k-1, bound -> periodicZ, nPointsZ));
-	    sum -= von_neumann_dE -> get(wrap(i, bound -> periodicX, nPointsX),
+	    sum -= von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
 					 wrap(j, bound -> periodicY, nPointsY),
 					 wrap(k+1, bound -> periodicZ, nPointsZ));
 
@@ -472,7 +472,7 @@ void solver::solve_static()
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
 	if ( is_von_neumann -> get(i, j, k) ) {
-	  potential -> set(i, j, k, potential -> get(i, j, k-1) - von_neumann_dE -> get(i, j, k));
+	  potential -> set(i, j, k, potential -> get(i, j, k-1) - von_neumann_dV -> get(i, j, k));
 	  
 	  // // each von Neumann grid point should have only one
 	  // // non-von Neumann neighbor, so go through each of them...
@@ -480,42 +480,42 @@ void solver::solve_static()
 	  //      and (is_in_volume -> get(wrap(i+1, bound -> periodicX, nPointsX), j, k)) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i+1 << " " << j << " " << k << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(wrap(i+1, bound -> periodicX, nPointsX), j, k));
 	  // }
 	  // else if ( (not is_von_neumann -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k))
 	  // 	    and (is_in_volume -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k)) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i-1 << " " << j << " " << k << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(wrap(i-1, bound -> periodicX, nPointsX), j, k));
 	  // }
 	  // else if ( (not is_von_neumann -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k))
 	  // 	    and (is_in_volume -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k)) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i << " " << j+1 << " " << k << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(i, wrap(j+1, bound -> periodicY, nPointsY), k));
 	  // }
 	  // else if ( (not is_von_neumann -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k))
 	  // 	    and (is_in_volume -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k)) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i << " " << j-1 << " " << k << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(i, wrap(j-1, bound -> periodicY, nPointsY), k));
 	  // }
 	  // else if ( (not is_von_neumann -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ)))
 	  // 	    and (is_in_volume -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ))) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i << " " << j << " " << k+1 << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(i, j, wrap(k+1, bound -> periodicZ, nPointsZ)));
 	  // }
 	  // else if ( (not is_von_neumann -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ)))
 	  // 	    and (is_in_volume -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ))) ) {
 	  //   // std::cout << "VN point " << i << " " << j << " " << k << '\n'
 	  //   // 	      << i << " " << j << " " << k-1 << std::endl;
-	  //   potential -> set(i, j, k, von_neumann_dE -> get(i, j, k)
+	  //   potential -> set(i, j, k, von_neumann_dV -> get(i, j, k)
 	  // 		     - potential -> get(i, j, wrap(k-1, bound -> periodicZ, nPointsZ)));
 	  // }
 	}
