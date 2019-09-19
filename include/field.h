@@ -31,6 +31,7 @@ class field
   void set(int, int, int, T);
   T get(int, int, int);
   void print_to_file(std::string);
+  field <T> * upscale(int);
   T interpolate(std::vector <double>);
   std::vector <T> interpolate_grad(std::vector <double>);
 };

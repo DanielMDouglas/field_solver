@@ -230,6 +230,72 @@ void field<T>::print_to_file(std::string filename)
 }
 
 template <typename T>
+field<T> * field<T>::upscale(int scaleFactor)
+{
+  // make the grid finer by scaleFactor
+  // keep the same endpoints
+  // so the number of points isn't just e.g. xSize*scaleFactor
+  // really, it's dividing the spacing
+  float xMin = x_space[0];
+  float yMin = y_space[0];
+  float zMin = z_space[0];
+
+  float xMax = x_space[xSize - 1];
+  float yMax = y_space[ySize - 1];
+  float zMax = z_space[zSize - 1];
+    
+  int newXSize = scaleFactor*(xSize - 1) + 1;
+  int newYSize = scaleFactor*(ySize - 1) + 1;
+  int newZSize = scaleFactor*(zSize - 1) + 1;
+
+  field<T> * newField = new field<T> (linspace(xMin, xMax, newXSize),
+				      linspace(yMin, yMax, newYSize),
+				      linspace(zMin, zMax, newZSize),
+				      0);
+
+  int sub_i_endpoint;
+  int sub_j_endpoint;
+  int sub_k_endpoint;
+  
+  for ( int i = 0; i < xSize; i++ ) {
+    if ( i == xSize - 1 ) {
+      sub_i_endpoint = 1;
+    }
+    else {
+      sub_i_endpoint = scaleFactor;
+    }
+    for ( int sub_i = 0; sub_i < sub_i_endpoint; sub_i++ ) {
+      for ( int j = 0; j < ySize; j++ ) {
+	if ( j == ySize - 1 ) {
+	  sub_j_endpoint = 1;
+	}
+	else {
+	  sub_j_endpoint = scaleFactor;
+	}
+	for ( int sub_j = 0; sub_i < sub_j_endpoint; sub_j++ ) {
+	  for ( int k = 0; k < zSize; k++ ) {
+	    if ( k == zSize - 1 ) {
+	      sub_k_endpoint = 1;
+	    }
+	    else {
+	      sub_k_endpoint = scaleFactor;
+	    }
+	    for ( int sub_k = 0; sub_k < sub_k_endpoint; sub_k++ ) {
+	      newField -> set(scaleFactor*i + sub_i,
+			      scaleFactor*j + sub_j,
+			      scaleFactor*k + sub_k,
+			      get(i, j, k));
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  return newField;
+}
+	
+template <typename T>
 T field<T>::interpolate(std::vector <double> pos)
 {
   std::vector <double> spacing = {0, 0, 0};
@@ -283,25 +349,6 @@ T field<T>::interpolate(std::vector <double> pos)
   }
 
   return sum;
-  
-  // inverse distance weighting
-  // double normalization = 0;
-  // double sum = 0;
-  // for ( int i: {xLowInd, xHighInd} ) {
-  //   for ( int j: {yLowInd, yHighInd} ) {
-  //     for ( int k: {zLowInd, zHighInd} ) {
-  // 	std::vector <double> edgePos = {x_space[i], y_space[j], z_space[k]};
-  // 	double weight = pow(mag(pos - edgePos), -1);
-
-  // 	sum += weight*get(i, j, k);
-  // 	normalization += weight;
-  // 	// std::cout << get(i, j, k) << std::endl;
-  //     }
-  //   }
-  // }
-  // sum /= normalization;
-  
-  // return sum;
 }
 
 template <typename T>

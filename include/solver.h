@@ -16,14 +16,23 @@ class solver
   double spacing = 0.01;
 
   boundary * bound;
-  
+
+  std::vector <double> x_axis;
+  std::vector <double> y_axis;
+  std::vector <double> z_axis;
+
+  std::vector <double> x_axis_staggered;
+  std::vector <double> y_axis_staggered;
+  std::vector <double> z_axis_staggered;
+
   field <double> * bval;
   field <double> * epVal;
   field <double> * sigVal;
   field <bool> * is_in_volume;
   field <bool> * is_dirichlet;
   field <bool> * is_von_neumann;
-  field <double> * von_neumann_dE;
+  field <bool> * is_boundary;
+  field <double> * von_neumann_dV;
   field <double> * Q;
   field <double> * dQdt;
   field <double> * E;
@@ -47,9 +56,17 @@ class solver
   field <double> * b6;
   
   solver(boundary*, int, double);
+  void upscale(int);
+  void initialize_axes();
+  void initialize_geometry_fields();
+  void initialize_permittivity_and_conductivity();
   void solve_static();
   void accum_charge();
   void solve_charge();
+  void set_VN();
+  void fill_empty_VN();
+  void relax();
+  int report(int);
 };
 
 #endif

@@ -84,11 +84,12 @@ volume::volume(double Xm = 0, double XM = 0,
   Ymax = YM;
   Zmin = Zm;
   Zmax = ZM;
-  V = constant(0);
+  V = constant(0xdeadbeef);
+  // V = constant(0);
   Efield = E;
   type = "VN";
   // er = constant(99999); // should be infinite, but that would be too many 9's
-  er = constant(0);
+  er = constant(1);
   sigma = constant(0);
   
   center = std::vector <double> {0.5*(Xm + XM),

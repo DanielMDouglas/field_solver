@@ -27,6 +27,7 @@ boundary::boundary(std::string inFileName)
   Zmax = j["bounds"]["zmax"];
 
   for ( nlohmann::json volume_json : j["volumes"] ) {
+    std::cout << "# Cionstructing " << volume_json["type"] << " volume" << std::endl;
     if ( volume_json["type"] == "conductor" ) {
       std::function <double (double, double, double)> voltageFunction;
       if ( volume_json["voltage"]["function_name"] == "constant" ) {
@@ -586,43 +587,39 @@ void boundary::add_volume(volume * newVol)
 
 bool boundary::is_in_conductor(double x, double y, double z)
 {
-  bool is_in_any = false;
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( ( volumes[i] -> type == "conductor" )
-	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
-      is_in_any = true;
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      return volumes[i] -> type == "conductor";
     }
   }
-  return is_in_any;
+  return false;
 }
-
+  
 bool boundary::is_in_VN(double x, double y, double z)
 {
-  bool is_in_any = false;
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( ( volumes[i] -> type == "VN" )
-	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
-      is_in_any = true;
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      return volumes[i] -> type == "VN";
     }
   }
-  return is_in_any;
+  return false;
 }
 
 bool boundary::is_in_volume(double x, double y, double z)
 {
-  bool is_in_any = false;
   for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
-      is_in_any = true;
+      return true;
     }
   }
-  return is_in_any;
+  return false;
 }
 
 double boundary::boundary_value(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( ( volumes[i] -> type == "conductor" )
+    if ( ( ( volumes[i] -> type == "conductor" )
+	   or ( volumes[i] -> type == "VN" ) )
 	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
       return volumes[i] -> V(x, y, z);
     }
@@ -648,7 +645,7 @@ double boundary::permittivity(double x, double y, double z)
       return volumes[i] -> er(x, y, z);
     }
   }
-  return 0;
+  return 1;
 }
 
 double boundary::conductivity(double x, double y, double z)
