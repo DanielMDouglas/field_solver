@@ -614,68 +614,77 @@ void solver::set_VN()
 
 void solver::fill_empty_VN()
 {
-  for ( int i = 0; i < potential -> xSize; i++ ) {
-    for ( int j = 0; j < potential -> ySize; j++ ) {
-      for ( int k = 0; k < potential -> zSize; k++ ) {
-	if ( potential -> get(i, j, k) == 0xdeadbeef ) {
-	  // this is a piece of von neumann boundary that never
-	  // got set, since it doesn't neighbor any non-boundary
-	  // voxels
-	  double neighborSum = 0;
-	  int nNeighbors = 0;
-	  if ( not i == potential -> xSize - 1 ) {
-	    if ( ( is_von_neumann -> get(i+1, j, k) )
-		 and ( potential -> get(i+1, j, k) != 0xdeadbeef ) ) {
-	      neighborSum += potential -> get(i+1, j, k);
-	      nNeighbors++;
+  // need to do this twice
+  // for the voxels in corners
+  for ( int iter = 0; iter < 2; iter++ ) {
+    for ( int i = 0; i < potential -> xSize; i++ ) {
+      for ( int j = 0; j < potential -> ySize; j++ ) {
+	for ( int k = 0; k < potential -> zSize; k++ ) {
+	  if ( potential -> get(i, j, k) == 0xdeadbeef ) {
+	    // this is a piece of von neumann boundary that never
+	    // got set, since it doesn't neighbor any non-boundary
+	    // voxels
+	    double neighborSum = 0;
+	    int nNeighbors = 0;
+	    if ( i != (potential -> xSize - 1) ) {
+	      if ( ( is_von_neumann -> get(i+1, j, k) )
+		   and ( potential -> get(i+1, j, k) != 0xdeadbeef ) ) {
+		neighborSum += potential -> get(i+1, j, k);
+		nNeighbors++;
+	      }
+	    }
+	    if ( i != 0 ) {
+	      if ( ( is_von_neumann -> get(i-1, j, k) )
+		   and ( potential -> get(i-1, j, k) != 0xdeadbeef ) ) {
+		neighborSum += potential -> get(i-1, j, k);
+		nNeighbors++;
+	      }
+	    }
+	    if ( j != (potential -> ySize - 1) ) {
+	      if ( ( is_von_neumann -> get(i, j+1, k) )
+		   and ( potential -> get(i, j+1, k) != 0xdeadbeef )) {
+		neighborSum += potential -> get(i, j+1, k);
+		nNeighbors++;
+	      }
+	    }
+	    if ( j != 0 ) {
+	      if ( ( is_von_neumann -> get(i, j-1, k) )
+		   and ( potential -> get(i, j-1, k) != 0xdeadbeef )) {
+		neighborSum += potential -> get(i, j-1, k);
+		nNeighbors++;
+	      }
+	    }
+	    if ( k != (potential -> zSize - 1) ) {
+	      if ( ( is_von_neumann -> get(i, j, k+1) )
+		   and ( potential -> get(i, j, k+1) != 0xdeadbeef )) {
+		neighborSum += potential -> get(i, j, k+1);
+		nNeighbors++;
+	      }
+	    }
+	    if ( k != 0 ) {
+	      if ( ( is_von_neumann -> get(i, j, k-1) )
+		   and ( potential -> get(i, j, k-1) != 0xdeadbeef )) {
+		neighborSum += potential -> get(i, j, k-1);
+		nNeighbors++;
+	      }
+	    }
+	    if ( nNeighbors ) {
+	      von_neumann_dV -> set(i, j, k, neighborSum/nNeighbors);
+	    }
+	    else {
+	      von_neumann_dV -> set(i, j, k, 0xdeadbeef);
 	    }
 	  }
-	  if ( not i == 0 ) {
-	    if ( ( is_von_neumann -> get(i-1, j, k) )
-		 and ( potential -> get(i-1, j, k) != 0xdeadbeef ) ) {
-	      neighborSum += potential -> get(i-1, j, k);
-	      nNeighbors++;
-	    }
-	  }
-	  if ( not j == potential -> ySize - 1 ) {
-	    if ( ( is_von_neumann -> get(i, j+1, k) )
-		 and ( potential -> get(i, j+1, k) != 0xdeadbeef )) {
-	      neighborSum += potential -> get(i, j+1, k);
-	      nNeighbors++;
-	    }
-	  }
-	  if ( not j == 0 ) {
-	    if ( ( is_von_neumann -> get(i, j-1, k) )
-		 and ( potential -> get(i, j-1, k) != 0xdeadbeef )) {
-	      neighborSum += potential -> get(i, j-1, k);
-	      nNeighbors++;
-	    }
-	  }
-	  if ( not k == potential -> zSize - 1 ) {
-	    if ( ( is_von_neumann -> get(i, j, k+1) )
-		 and ( potential -> get(i, j, k+1) != 0xdeadbeef )) {
-	      neighborSum += potential -> get(i, j, k+1);
-	      nNeighbors++;
-	    }
-	  }
-	  if ( not k == 0 ) {
-	    if ( ( is_von_neumann -> get(i, j, k-1) )
-		 and ( potential -> get(i, j, k-1) != 0xdeadbeef )) {
-	      neighborSum += potential -> get(i, j, k-1);
-	      nNeighbors++;
-	    }
-	  }
-	  von_neumann_dV -> set(i, j, k, neighborSum/nNeighbors);
 	}
       }
     }
-  }
-  for ( int i = 0; i < potential -> xSize; i++ ) {
-    for ( int j = 0; j < potential -> ySize; j++ ) {
-      for ( int k = 0; k < potential -> zSize; k++ ) {
-  	if ( potential -> get(i, j, k) == 0xdeadbeef ) {
-  	  potential -> set(i, j, k, von_neumann_dV -> get(i, j, k));
-  	}
+    for ( int i = 0; i < potential -> xSize; i++ ) {
+      for ( int j = 0; j < potential -> ySize; j++ ) {
+	for ( int k = 0; k < potential -> zSize; k++ ) {
+	  if ( potential -> get(i, j, k) == 0xdeadbeef ) {
+	    potential -> set(i, j, k, von_neumann_dV -> get(i, j, k));
+	  }
+	}
       }
     }
   }
