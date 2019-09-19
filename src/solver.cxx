@@ -182,7 +182,7 @@ void solver::upscale(int scaleFactor)
   nPointsX = scaleFactor*(nPointsX - 1) + 1;
   nPointsY = scaleFactor*(nPointsY - 1) + 1;
   nPointsZ = scaleFactor*(nPointsZ - 1) + 1;
-
+  
   spacing /= scaleFactor;
 
   initialize_axes();
@@ -190,8 +190,9 @@ void solver::upscale(int scaleFactor)
   initialize_geometry_fields();
 
   Q = Q -> upscale(scaleFactor);
+
   potential = potential -> upscale(scaleFactor);
-  
+
   // initialize temporary fields
   resid = new field <double> (x_axis, y_axis, z_axis, constant(0.));
 
@@ -776,6 +777,10 @@ int main(int argc, char const * argv[])
   
   // thisSolver.solve_charge();
   thisSolver.solve_static();
+  for ( int order = 0; order < 3; order++ ) {
+    thisSolver.upscale(2);
+    thisSolver.solve_static();
+  }
   thisSolver.potential -> print_to_file(outFileName);
   thisSolver.Q -> print_to_file("Q.dat");
     

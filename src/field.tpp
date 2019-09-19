@@ -243,7 +243,7 @@ field<T> * field<T>::upscale(int scaleFactor)
   float xMax = x_space[xSize - 1];
   float yMax = y_space[ySize - 1];
   float zMax = z_space[zSize - 1];
-    
+
   int newXSize = scaleFactor*(xSize - 1) + 1;
   int newYSize = scaleFactor*(ySize - 1) + 1;
   int newZSize = scaleFactor*(zSize - 1) + 1;
@@ -272,7 +272,7 @@ field<T> * field<T>::upscale(int scaleFactor)
 	else {
 	  sub_j_endpoint = scaleFactor;
 	}
-	for ( int sub_j = 0; sub_i < sub_j_endpoint; sub_j++ ) {
+	for ( int sub_j = 0; sub_j < sub_j_endpoint; sub_j++ ) {
 	  for ( int k = 0; k < zSize; k++ ) {
 	    if ( k == zSize - 1 ) {
 	      sub_k_endpoint = 1;
