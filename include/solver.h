@@ -13,7 +13,7 @@ class solver
   int nPointsX;
   int nPointsY;
   int nPointsZ;
-  double spacing = 0.01;
+  double spacing;
 
   boundary * bound;
 
@@ -65,7 +65,7 @@ class solver
   void solve_charge();
   void set_VN();
   void fill_empty_VN();
-  void relax();
+  void relax(int);
   int report(int);
 };
 

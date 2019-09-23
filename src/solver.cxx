@@ -4,6 +4,11 @@
 #include <vector>
 #include <signal.h>
 #include <cstring>
+#include <thread>
+
+// #ifdef _OPENMP
+#include <omp.h>
+// #endif
 
 #include "solver.h"
 #include "physics.h"
@@ -18,7 +23,7 @@ int iterFreq = 100;
 double tolerance = 1.e-15;
 double w = 1;
 int N = 0xdeadbeef;
-double spacing = 0.01; // cm  
+double initSpacing = 0.01; // cm  
 bool verbose = false;
 
 void handleOpts(int argc, char const * argv[])
@@ -58,7 +63,7 @@ void handleOpts(int argc, char const * argv[])
       argValue >> N;
     }
     if ( optValue.str() == "-s" ) {
-      argValue >> spacing;
+      argValue >> initSpacing;
     }
     if (optValue.str() == "-v" ) {
       verbose = true;
@@ -76,7 +81,7 @@ void handleOpts(int argc, char const * argv[])
 	    << "# threshold:           " << tolerance << '\n'
             << "# N vertices:          " << N << '\n'
             << "# relaxation factor:   " << w << '\n'
-	    << "# spacing:             " << spacing << '\n'
+	    << "# spacing:             " << initSpacing << '\n'
 	    << "# verbose:             " << verbose << '\n'
 	    << "####################################" << std::endl;
 }
@@ -86,9 +91,10 @@ void term(int signum)
   sig_int = 1;
 }
 
-solver::solver(boundary * b, int N, double spacing)
+solver::solver(boundary * b, int N, double initSpacing)
 {
   bound = b;
+  spacing = initSpacing;
 
   // set up grid parameters
   if ( N == 0xdeadbeef ) {
@@ -118,6 +124,9 @@ solver::solver(boundary * b, int N, double spacing)
 	    << "Npoints X: " << nPointsX << '\t'
 	    << "Npoints Y: " << nPointsY << '\t'
 	    << "Npoints Z: " << nPointsZ << '\t'
+	    << std::endl
+	    << "# "
+	    << "Spacing: " << spacing
 	    << std::endl;
   // over-relaxation: w > 1
   // does not work yet!
@@ -184,6 +193,15 @@ void solver::upscale(int scaleFactor)
   nPointsZ = scaleFactor*(nPointsZ - 1) + 1;
   
   spacing /= scaleFactor;
+
+  std::cout << "# "
+	    << "Npoints X: " << nPointsX << '\t'
+	    << "Npoints Y: " << nPointsY << '\t'
+	    << "Npoints Z: " << nPointsZ << '\t'
+	    << std::endl
+    	    << "# "
+	    << "Spacing: " << spacing
+	    << std::endl;
 
   initialize_axes();
 
@@ -454,7 +472,7 @@ void solver::solve_static()
 	    << "Stepwise Difference Norm:"
 	    << std::endl;
   for ( int iter = 0; iter < nIter; iter++ ) {
-    relax();
+    relax(1);
 
     set_VN();
 
@@ -469,20 +487,15 @@ void solver::solve_static()
     int done = report(iter);
     if ( done ) break;
     
-    if ( iter == 1 ) {
-      potential -> print_to_file("second.dat");
-    }
-
     for ( int i = 0; i < potential -> xSize; i++ ) {
       for ( int j = 0; j < potential -> ySize; j++ ) {
-    	for ( int k = 0; k < potential -> zSize; k++ ) {
-    	  double fac = w;
-    	  potential -> set(i, j, k,
+	for ( int k = 0; k < potential -> zSize; k++ ) {
+	  double fac = w;
+	  potential -> set(i, j, k,
 			   potential -> get(i, j, k) + fac*resid -> get(i, j, k));
-    	}
+	}
       }
     }
-
   }
   
   // field <double> * VNtemp = new field <double> (x_axis, y_axis, y_axis, constant(0.));
@@ -691,39 +704,49 @@ void solver::fill_empty_VN()
   }
 }
 
-void solver::relax()
+void solver::relax(int nThreads = 2)
 {
-  // set tempGrid to the average of the neighboring cells
-  for ( int i = 0; i < potential -> xSize; i++ ) {
-    for ( int j = 0; j < potential -> ySize; j++ ) {
-      for ( int k = 0; k < potential -> zSize; k++ ) {
-	if ( not ( is_dirichlet -> get(i, j, k) 
-		   or is_von_neumann -> get(i, j, k) ) ) {
-	  double sum = 0;
+  omp_set_dynamic(0);
+  omp_set_num_threads(4);
 
-	  sum += a1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k+1, bound -> periodicZ, nPointsZ));
-	  sum += a2 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j+1, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ));
-	  sum += a3 -> get(i, j, k)*potential -> get(wrap(i+1, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ));
-	  sum += a4 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k-1, bound -> periodicZ, nPointsZ));
-	  sum += a5 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j-1, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ));
-	  sum += a6 -> get(i, j, k)*potential -> get(wrap(i-1, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ));
+  #pragma omp parallel
+  {
 
-	  sum += (Q -> get(i, j, k))/ep0;
-	  sum /= a0 -> get(i, j, k);
-	  sum -= potential -> get(i, j, k);
-	  resid -> set(i, j, k, sum);
+    // std::cout << "# threads: " << omp_get_num_threads() << std::endl;
+    #pragma omp for
+    for ( int i = 0; i < potential -> xSize; i++ ) {
+      // std::cout << omp_get_num_threads() << '\t'
+      // 		<< omp_get_thread_num() << '\t'
+      // 		<< i << std::endl;
+      for ( int j = 0; j < potential -> ySize; j++ ) {
+	for ( int k = 0; k < potential -> zSize; k++ ) {
+	  if ( not  is_boundary -> get(i, j, k) ) {
+	    double sum = 0;
+
+	    sum += a1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
+						       wrap(j, bound -> periodicY, nPointsY),
+						       wrap(k+1, bound -> periodicZ, nPointsZ));
+	    sum += a2 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
+						       wrap(j+1, bound -> periodicY, nPointsY),
+						       wrap(k, bound -> periodicZ, nPointsZ));
+	    sum += a3 -> get(i, j, k)*potential -> get(wrap(i+1, bound -> periodicX, nPointsX),
+						       wrap(j, bound -> periodicY, nPointsY),
+						       wrap(k, bound -> periodicZ, nPointsZ));
+	    sum += a4 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
+						       wrap(j, bound -> periodicY, nPointsY),
+						       wrap(k-1, bound -> periodicZ, nPointsZ));
+	    sum += a5 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
+						       wrap(j-1, bound -> periodicY, nPointsY),
+						       wrap(k, bound -> periodicZ, nPointsZ));
+	    sum += a6 -> get(i, j, k)*potential -> get(wrap(i-1, bound -> periodicX, nPointsX),
+						       wrap(j, bound -> periodicY, nPointsY),
+						       wrap(k, bound -> periodicZ, nPointsZ));
+
+	    sum += (Q -> get(i, j, k))/ep0;
+	    sum /= a0 -> get(i, j, k);
+	    sum -= potential -> get(i, j, k);
+	    resid -> set(i, j, k, sum);
+	  }
 	}
       }
     }
@@ -761,6 +784,8 @@ int main(int argc, char const * argv[])
 {
   handleOpts(argc, argv);
 
+  // omp_set_num_threads(4);
+  
   // sig handling
   struct sigaction action;
   memset(&action, 0, sizeof(struct sigaction));
@@ -768,7 +793,7 @@ int main(int argc, char const * argv[])
   sigaction(SIGINT, &action, NULL);
   
   boundary * detector = new boundary (geom);
-  solver thisSolver (detector, N, spacing);
+  solver thisSolver (detector, N, initSpacing);
   thisSolver.sigVal -> print_to_file("cond_map.dat");
   thisSolver.is_dirichlet -> print_to_file("dirichlet_map.dat");
   thisSolver.is_von_neumann -> print_to_file("VN_map.dat");
@@ -777,10 +802,10 @@ int main(int argc, char const * argv[])
   
   // thisSolver.solve_charge();
   thisSolver.solve_static();
-  for ( int order = 0; order < 3; order++ ) {
-    thisSolver.upscale(2);
-    thisSolver.solve_static();
-  }
+  // for ( int order = 0; order < 3; order++ ) {
+  //   thisSolver.upscale(2);
+  //   thisSolver.solve_static();
+  // }
   thisSolver.potential -> print_to_file(outFileName);
   thisSolver.Q -> print_to_file("Q.dat");
     

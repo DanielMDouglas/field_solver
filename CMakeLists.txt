@@ -36,6 +36,7 @@ else()
   include_directories(${PROJECT_SOURCE_DIR}/include)
 endif()
 
+include(FindOpenMP)
 
 #----------------------------------------------------------------------------
 # Locate sources and headers for this project
@@ -49,23 +50,21 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.h)
 #
 
 add_executable( solver ${PROJECT_SOURCE_DIR}/src/solver.cxx ${sources} ${headers})
-# target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-target_link_libraries( solver ${CMAKE_THREAD_LIBS_INIT} )
-
 add_executable( drift ${PROJECT_SOURCE_DIR}/src/drift.cxx ${sources} ${headers})
-# target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-target_link_libraries( drift ${CMAKE_THREAD_LIBS_INIT} )
-
 add_executable( edep ${PROJECT_SOURCE_DIR}/src/edep.cxx ${sources} ${headers})
-# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-target_link_libraries( edep ${CMAKE_THREAD_LIBS_INIT} )
-
 add_executable( efield ${PROJECT_SOURCE_DIR}/src/efield.cxx ${sources} ${headers})
-# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-target_link_libraries( efield ${CMAKE_THREAD_LIBS_INIT} )
-
 add_executable( induction ${PROJECT_SOURCE_DIR}/src/induction.cxx ${sources} ${headers})
+
+# target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 # target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+
+target_link_libraries( solver ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( drift ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( edep ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( efield ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( induction ${CMAKE_THREAD_LIBS_INIT} )
 
 if(ROOT_FOUND)
@@ -74,9 +73,14 @@ if(ROOT_FOUND)
   target_link_libraries(edep ${ROOT_LIBRARIES})
   target_link_libraries(efield ${ROOT_LIBRARIES})
   target_link_libraries(induction ${ROOT_LIBRARIES})
-# else()
-#   target_link_libraries(solver ${Geant4_LIBRARIES})
-#   target_link_libraries(drift ${Geant4_LIBRARIES})
+endif()
+
+if(OPENMP_FOUND)
+  target_link_libraries(solver ${OpenMP_CXX_FLAGS})
+  target_link_libraries(drift ${OpenMP_CXX_FLAGS})
+  target_link_libraries(edep ${OpenMP_CXX_FLAGS})
+  target_link_libraries(efield ${OpenMP_CXX_FLAGS})
+  target_link_libraries(induction ${OpenMP_CXX_FLAGS})
 endif()
 
 # install(TARGETS solver DESTINATION bin)
