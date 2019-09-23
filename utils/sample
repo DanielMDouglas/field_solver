@@ -1,0 +1,106 @@
+#!/usr/bin/python
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+n0 = 1.
+DT = 12.e-6
+DL = 7.2e-6
+v = 0.159636
+lamb = 0
+
+def pdf(t0, depPos, t, rho):
+    z = depPos[2] - 2.5
+    return n0/(4*np.pi*DT*t*np.sqrt(4*np.pi*DL*t))*np.exp(-np.power(z - v*t, 2)/(4*DL*t) - lamb*v*t)*np.exp(-np.power(rho, 2)/(4*DT*t))
+
+NpointsT= 1000
+tLow = 108
+tHigh = 112
+tspace = np.linspace(tLow, tHigh, NpointsT)
+dt = float(tHigh - tLow)/NpointsT
+
+NpointsRho = 1000
+rhoLow = 0
+rhoHigh = 0.2
+rhospace = np.linspace(rhoLow, rhoHigh, NpointsRho)
+drho = float(rhoHigh - rhoLow)/NpointsRho
+
+def sample(t0, pos_init, N):
+    
+    marg_t = np.array([sum(drho*rhospace*pdf(t0, pos_init, ti, rhospace)) for ti in tspace])
+
+    # plt.plot(tspace, marg_t)
+    # plt.xlabel(r't [$\mu$s]')
+    # plt.ylabel(r'Probability Density')
+    # plt.grid()
+    # plt.show()
+
+    marg_rho = np.array([sum(dt*pdf(t0, pos_init, tspace, rhoi)) for rhoi in rhospace])
+
+    # plt.plot(rhospace, marg_rho)
+    # plt.xlabel(r'$\rho$ [cm]')
+    # plt.ylabel(r'Probability Density')
+    # plt.grid()
+    # plt.show()
+
+    # f = np.array([[pdf(ti, rhoi, t0, pos_init)
+    #                for ti in tspace]
+    #               for rhoi in rhospace])
+    f = pdf(t0, pos_init, *np.meshgrid(tspace, rhospace))
+    # plt.pcolormesh(tspace, rhospace, f)
+    # plt.show()
+
+    # sampling stuff
+    unif = np.random.random(size = N)
+
+    # the cumulative distribution function for t, marginalizing over rho
+    cdf_t_given_rho = np.cumsum(marg_t)*dt
+
+    # random variates in the marginal distribution for t
+    # by inverting the cdf
+    t_rvs = np.interp(unif, cdf_t_given_rho, tspace)
+
+    # plot the cdf
+    # plt.plot(tspace, cdf_t_given_rho)
+    # plt.grid()
+    # plt.show()
+
+    # plot the pdf and the histogrammed rvs for comparison
+    # plt.plot(tspace, marg_t)
+    # plt.hist(t_rvs, density=True, histtype='step')
+    # plt.grid()
+    # plt.show()
+
+    # for each rvs in t, there is an associated pdf
+    # P(rho | t) = P(t | rho) P(rho) / P(t)
+    cond_rho = pdf(t0, pos_init, *np.meshgrid(t_rvs, rhospace))
+    cond_rho /= drho*np.sum(cond_rho.T, axis=1).T
+
+    cdf_rho_given_t = np.cumsum(cond_rho.T, axis=1).T*drho
+
+    # plt.plot(rhospace, cdf_rho_given_t[:,:10])
+    # plt.show()
+
+    unif2 = np.random.random(size = N)
+    rho_rvs = np.array([np.interp(u, cdf, rhospace)
+                        for u, cdf in zip(unif2, cdf_rho_given_t.T)])
+    # print rho_rvs.shape
+    # fig, (ax1, ax2) = plt.subplots(1, 2)
+    # ax1.pcolormesh(tspace, rhospace, f)
+    # ax2.hist2d(t_rvs, rho_rvs, bins = [np.linspace(108, 112, 20), np.linspace(0, 0.2, 20)])
+    # # plt.scatter(t_rvs, rho_rvs)
+    # plt.show()
+
+    theta = 2*np.pi*np.random.random(size = N)
+
+    x = rho_rvs*np.cos(theta) + pos_init[0]
+    y = rho_rvs*np.sin(theta) + pos_init[1]
+    z = 2.5*np.ones_like(x)
+    t = t_rvs + t0
+
+    for i in range(N):
+        print x[i], '\t', y[i], '\t', z[i], '\t', t[i]
+
+for xi in np.linspace(-2.5, 2.5, 50):
+    sample(0., [xi, 0., 20.], 1)
+

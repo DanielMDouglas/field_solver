@@ -1,0 +1,51 @@
+{
+    "name": "sheet",
+    "periodicity": {"x": true,
+		    "y": true,
+		    "z": false
+		   },
+    "bounds": {
+	"xmin": 0,
+	"xmax": 1,
+	"ymin": 0,
+	"ymax": 0.03,
+	"zmin": 0,
+	"zmax": 1
+    },
+    "volumes": [{"type": "von Neumann",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 0.03,
+		 "zmin": 0,
+		 "zmax": 0.01,
+		 "Efield": {-1
+			   }
+		},
+		{"type": "conductor",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 0.03,
+		 "zmin": 0.99,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [1]
+			    }
+		},
+		{"type": "dielectric",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 0.03,
+		 "zmin": 0,
+		 "zmax": 1,
+		 "permittivity": {"function_name": "constant",
+				  "args": [1]
+				 },
+		 "conductivity": {"function_name": "constant",
+				  "args": [0]
+				 }
+		}
+	       ]
+}

@@ -1,40 +1,116 @@
-#include <G4LogicalVolume.hh>
-#include <G4VSolid.hh>
-#include <G4ThreeVector.hh>
-#include <G4VisExtent.hh>
-
 #include "volume.h"
+#include "utils.h"
 
-volume::volume(G4LogicalVolume* vol, double voltage, std::vector <double> center)
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       double relative_permittivity = 1,
+	       double conductivity = 0)
 {
-  std::cout << "Initializing volume " << vol -> GetName()
-	    << " with potential " << voltage
-	    << std::endl;
-  log_vol = vol;
-  V = voltage;
-  cen = center;
+  // dielectric constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = constant(0);
+  type = "dielectric";
+  er = constant(relative_permittivity);
+  sigma = constant(conductivity);
+
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       std::function<double (double, double, double)> relative_permittivity = constant(1),
+	       std::function<double (double, double, double)> conductivity = constant(0))
+{
+  // dielectric constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = constant(0);
+  type = "dielectric";
+  er = relative_permittivity;
+  sigma = conductivity;
+
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       std::function<double (double, double, double)> voltage_function = constant(0))
+{
+  // conductor constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = voltage_function;
+  type = "conductor";
+  // er = constant(99999); // should be infinite, but that would be too many 9's
+  // sigma = constant(99999);
+  er = constant(1);
+  sigma = constant(0);
+  
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+volume::volume(double Xm = 0, double XM = 0,
+	       double Ym = 0, double YM = 0,
+	       double Zm = 0, double ZM = 0,
+	       double E = 0)
+{
+  // von Neumann boundary condition constructor
+  Xmin = Xm;
+  Xmax = XM;
+  Ymin = Ym;
+  Ymax = YM;
+  Zmin = Zm;
+  Zmax = ZM;
+  V = constant(0xdeadbeef);
+  // V = constant(0);
+  Efield = E;
+  type = "VN";
+  // er = constant(99999); // should be infinite, but that would be too many 9's
+  er = constant(1);
+  sigma = constant(0);
+  
+  center = std::vector <double> {0.5*(Xm + XM),
+				 0.5*(Ym + YM),
+				 0.5*(Zm + ZM)};
+}
+
+double volume::get_voltage(double x, double y, double z)
+{
+  return V(x, y, z);
 }
 
 bool volume::is_in_boundary(double x, double y, double z)
 {
-  G4VSolid * solid = log_vol -> GetSolid();
-  G4ThreeVector p(x + cen[0],
-		  y + cen[1],
-		  z + cen[2]);
-  return ( solid -> Inside(p) == kInside );
-}
-
-G4VisExtent volume::extent()
-{
-  G4VSolid * solid = log_vol -> GetSolid();
-  G4VisExtent ext = solid -> GetExtent();
-
-  ext.SetXmin(ext.GetXmin() + cen[0]);
-  ext.SetXmax(ext.GetXmax() + cen[0]);
-  ext.SetYmin(ext.GetYmin() + cen[1]);
-  ext.SetYmax(ext.GetYmax() + cen[1]);
-  ext.SetZmin(ext.GetZmin() + cen[2]);
-  ext.SetZmax(ext.GetZmax() + cen[2]);
-
-  return ext;
+  if ( ( Xmin <= x ) and
+       ( x <= Xmax ) and
+       ( Ymin <= y ) and
+       ( y <= Ymax ) and
+       ( Zmin <= z ) and
+       ( z <= Zmax ) ) {
+    return true;
+  }
+  else return false;
 }

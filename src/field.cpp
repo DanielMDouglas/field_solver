@@ -3,169 +3,69 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-
-#include <G4VisExtent.hh>
+#include <algorithm>
+#include <math.h>
 
 #include "field.h"
-#include "solver.h"
 
-field::field(std::vector <double> x,
-	     std::vector <double> y,
-	     std::vector <double> z,
-	     double init_val = 0)
+double squared_sum(field <double> * a)
 {
-  xSize = x.size();
-  ySize = y.size();
-  zSize = z.size();
-  
-  x_space = x;
-  y_space = y;
-  z_space = z;
+  // return the squared sum of a field
 
-  values = std::vector< double > (xSize*ySize*zSize, init_val);
-}
-
-field::field(std::vector <double> x,
-	     std::vector <double> y,
-	     std::vector <double> z,
-	     double (*f)(double, double, double))
-{
-  xSize = x.size();
-  ySize = y.size();
-  zSize = z.size();
-
-  x_space = x;
-  y_space = y;
-  z_space = z;
-
-  values = std::vector< double > (xSize*ySize*zSize);
-
-  for ( int i = 0; i < xSize; i++ ) {
-    for ( int j = 0; j < ySize; j++ ) {
-      for ( int k = 0; k < zSize; k++ ) {
-	set(i, j, k, (*f)(x[i], y[j], z[k]));
+  double sum = 0;
+  int n_points = 0;
+  for ( int i = 0; i < a -> xSize; i++ ) {
+    for ( int j = 0; j < a -> ySize; j++ ) {
+      for ( int k = 0; k < a -> zSize; k++ ) {
+	sum += pow(a -> get(i, j, k), 2);
+	n_points++;
       }
     }
   }
+  return sum/n_points;
 }
 
-field::field(boundary bound, int Nx, int Ny, int Nz)
+double squared_sum(field <double> * a, field <bool> * exclude)
 {
-  xSize = Nx;
-  ySize = Ny;
-  zSize = Nz;
+  // return the squared sum of a field where a boolean field is true
 
-  G4VisExtent extent = bound.extent();
-  std::cout << extent << std::endl;
-  
-  x_space = linspace(extent.GetXmin(), extent.GetXmax(), Nx);
-  y_space = linspace(extent.GetYmin(), extent.GetYmax(), Ny);
-  z_space = linspace(extent.GetZmin(), extent.GetZmax(), Nz);
-
-  values = std::vector< double > (xSize*ySize*zSize);
-
-  for ( int i = 0; i < xSize; i++ ) {
-    for ( int j = 0; j < ySize; j++ ) {
-      for ( int k = 0; k < zSize; k++ ) {
-	if ( bound.is_in_boundary(x_space[i],
-				  y_space[j],
-				  z_space[k]) ) {
-	  set(i, j, k, 1);
-	}
-	else {
-	  set(i, j, k, 0);
+  double sum = 0;
+  int n_points = 0;
+  for ( int i = 0; i < a -> xSize; i++ ) {
+    for ( int j = 0; j < a -> ySize; j++ ) {
+      for ( int k = 0; k < a -> zSize; k++ ) {
+	if ( not exclude -> get(i, j, k) ) {
+	  sum += pow(a -> get(i, j, k), 2);
+	  n_points++;
 	}
       }
     }
   }
+  return sum/n_points;
 }
 
-void field::set(int i, int j, int k, double value)
+double squared_diff(field <double> * a, field <double> * b)
 {
-  values[ySize*zSize*i + zSize*j + k] = value;
-}
+  // return the sum of squared differences of each field
 
-double field::get(int i, int j, int k)
-{
-  return values[ySize*zSize*i + zSize*j + k];
-}
-
-void field::print_to_file(std::string filename)
-{
-  std::ofstream outFile (filename.c_str());
-  for ( int i = 0; i < xSize; i++ ) {
-    for ( int j = 0; j < ySize; j++ ) {
-      for ( int k = 0; k < zSize; k++ ) {
-	outFile << x_space[i] << ','
-		<< y_space[j] << ','
-		<< z_space[k] << ','
-		<< get(i, j, k) << '\n';
+  field <double> * temp = new field <double>(a -> x_space, a -> y_space, a -> z_space, 0.);
+  for ( int i = 0; i < a -> xSize; i++ ) {
+    for ( int j = 0; j < a -> ySize; j++ ) {
+      for ( int k = 0; k < a -> zSize; k++ ) {
+	temp -> set(i, j, k, (a -> get(i, j, k)) - (b -> get(i, j, k)));
       }
     }
   }
-  outFile.close();
+  return squared_sum(temp); 
 }
 
-double squared_diff(field a, field b)
+double squared_diff(field <double> * a, field <double> * b, field <bool> * exclude)
 {
-  // return the squared differences of each field
+  // return the sum of squared differences of each field where a boolean field is true
 
-  // first, check that they have the same shape
-  try {
-    if ( ( not ( a.xSize == b.xSize ) )
-	 or ( not ( a.ySize == b.ySize ) )
-	 or ( not ( a.zSize == b.zSize ) ) ) {
-      throw 20;
-    }
-    else {
-      double sum = 0;
-      int n_points = 0;
-      for ( int i = 0; i < a.xSize; i++ ) {
-	for ( int j = 0; j < a.ySize; j++ ) {
-	  for ( int k = 0; k < a.zSize; k++ ) {
-	    sum += pow(a.get(i, j, k) - b.get(i, j, k), 2);
-	    n_points++;
-	  }
-	}
-      }
-      return sum/n_points;
-    }
+  field <double> * temp = new field <double> (a -> x_space, a -> y_space, a -> z_space, constant(0.));
+  for ( int i = 0; i < (a -> xSize)*(a -> ySize)*(a -> zSize); i++ ) {
+    temp -> values[i] = (a -> values[i]) - (b -> values[i]);	
   }
-  catch ( int e ) {
-    std::cout << "ERROR: tried to compute squared difference of fields of different size!" << std::endl;
-  }
-  return 0;
-}
-
-double squared_diff(field a, field b, bool (*exclude)(int, int, int))
-{
-  // return the squared differences of each field
-
-  // first, check that they have the same shape
-  try {
-    if ( ( not ( a.xSize == b.xSize ) )
-	 or ( not ( a.ySize == b.ySize ) )
-	 or ( not ( a.zSize == b.zSize ) ) ) {
-      throw 20;
-    }
-    else {
-      double sum = 0;
-      int n_points = 0;
-      for ( int i = 0; i < a.xSize; i++ ) {
-	for ( int j = 0; j < a.ySize; j++ ) {
-	  for ( int k = 0; k < a.zSize; k++ ) {
-	    if ( not exclude(i, j, k) ) {
-	      sum += pow(a.get(i, j, k) - b.get(i, j, k), 2);
-	      n_points++;
-	    }
-	  }
-	}
-      }
-      return sum/n_points;
-    }
-  }
-  catch ( int e ) {
-    std::cout << "ERROR: tried to compute squared difference of fields of different size!" << std::endl;
-  }
-  return 0;
+  return squared_sum(temp, exclude);
 }

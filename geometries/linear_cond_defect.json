@@ -1,0 +1,53 @@
+{
+    "name": "linear with conductivity defect",
+    "periodicity": {"x": true,
+		    "y": true,
+		    "z": false
+		   },
+    "bounds": {
+	"xmin": 0,
+	"xmax": 1,
+	"ymin": 0,
+	"ymax": 1,
+	"zmin": 0,
+	"zmax": 1
+    },
+    "volumes": [{"type": "conductor",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 1,
+		 "zmin": 0,
+		 "zmax": 0.01,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    }
+		},
+		{"type": "conductor",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 1,
+		 "zmin": 0.99,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [1]
+			    }
+		},
+		{"type": "dielectric",
+		 "xmin": 0,
+		 "xmax": 1,
+		 "ymin": 0,
+		 "ymax": 1,
+		 "zmin": 0,
+		 "zmax": 1,
+		 "permittivity": {"function_name": "constant",
+				  "args": [1]
+				 },
+		 "conductivity": {"function_name": "gaussian",
+				  "args": [0.5, 0.5, 0.5,
+					   0.1, 1, -0.75]
+				 }
+		}
+	       ]
+}
