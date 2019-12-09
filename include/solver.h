@@ -13,6 +13,7 @@ class solver
   int nPointsX;
   int nPointsY;
   int nPointsZ;
+  int nUpscale;
   double spacing;
 
   boundary * bound;

@@ -23,6 +23,7 @@ int iterFreq = 100;
 double tolerance = 1.e-15;
 double w = 1;
 int N = 0xdeadbeef;
+int nUpscale = 0;
 double initSpacing = 0.01; // cm  
 bool verbose = false;
 
@@ -62,6 +63,9 @@ void handleOpts(int argc, char const * argv[])
     if ( optValue.str() == "-N" ) {
       argValue >> N;
     }
+    if ( optValue.str() == "-u" ) {
+      argValue >> nUpscale;
+    }
     if ( optValue.str() == "-s" ) {
       argValue >> initSpacing;
     }
@@ -81,6 +85,7 @@ void handleOpts(int argc, char const * argv[])
 	    << "# threshold:           " << tolerance << '\n'
             << "# N vertices:          " << N << '\n'
             << "# relaxation factor:   " << w << '\n'
+	    << "# N upscale:           " << nUpscale << '\n'
 	    << "# spacing:             " << initSpacing << '\n'
 	    << "# verbose:             " << verbose << '\n'
 	    << "####################################" << std::endl;
@@ -132,11 +137,11 @@ solver::solver(boundary * b, int N, double initSpacing)
   // does not work yet!
   // double t = cos(pi/nPointsX) + cos(pi/nPointsY) + cos(pi/nPointsZ);
   // double w = (8 - sqrt(64 - 16*t*t))/(t*t);
-
+  
   initialize_axes();
 
   initialize_geometry_fields();
-  
+
   // charge distribution
   if ( startingQ == "none" ) {
     // start with 0 charge
@@ -276,8 +281,8 @@ void solver::initialize_geometry_fields()
 									std::placeholders::_2,
 									std::placeholders::_3));
   bval = new field <double> (x_axis, y_axis, z_axis, bval_func);
-
-    // permittivity is defined everywhere
+  
+  // permittivity is defined everywhere
   // this gets permittivity from each volume, defaulting to 1 (vacuum)
   std::function <double (double, double, double)> epVal_func;
   epVal_func = std::function<double (double, double, double)> (std::bind(&boundary::permittivity,
@@ -791,9 +796,10 @@ int main(int argc, char const * argv[])
   memset(&action, 0, sizeof(struct sigaction));
   action.sa_handler = term;
   sigaction(SIGINT, &action, NULL);
-  
+
   boundary * detector = new boundary (geom);
   solver thisSolver (detector, N, initSpacing);
+
   thisSolver.sigVal -> print_to_file("cond_map.dat");
   thisSolver.is_dirichlet -> print_to_file("dirichlet_map.dat");
   thisSolver.is_von_neumann -> print_to_file("VN_map.dat");
@@ -802,10 +808,10 @@ int main(int argc, char const * argv[])
   
   // thisSolver.solve_charge();
   thisSolver.solve_static();
-  // for ( int order = 0; order < 3; order++ ) {
-  //   thisSolver.upscale(2);
-  //   thisSolver.solve_static();
-  // }
+  for ( int order = 0; order < nUpscale; order++ ) {
+    thisSolver.upscale(3);
+    thisSolver.solve_static();
+  }
   thisSolver.potential -> print_to_file(outFileName);
   thisSolver.Q -> print_to_file("Q.dat");
     

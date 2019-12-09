@@ -4,6 +4,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <nlohmann/json.hpp>
 
 class volume
 {
@@ -18,22 +19,9 @@ class volume
   std::function<double (double, double, double)> er;
   std::function<double (double, double, double)> sigma;
   bool isSensitive = false;
+  std::string description;
 
-  // dielectric constructor
-  volume(double, double, double,
-	 double, double, double,
-	 double, double);
-  volume(double, double, double,
-	 double, double, double,
-	 std::function<double (double, double, double)>,
-	 std::function<double (double, double, double)>);
-  // conductor constructor
-  volume(double, double, double,
-	 double, double, double,
-	 std::function<double (double, double, double)>);
-  volume(double, double, double,
-	 double, double, double,
-	 double);
+  volume(nlohmann::json);
   double get_voltage(double, double, double);
   bool is_in_boundary(double, double, double);
 };
