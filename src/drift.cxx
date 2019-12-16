@@ -56,12 +56,12 @@ int main(int argc, char const * argv[])
 
   double yi = 0;
 
-  std::vector <double> xi_space = linspace(0., 0.195, nPaths);
+  std::vector <double> xi_space = linspace(0., 0.88, nPaths);
 
   for ( int i = 0; i < xi_space.size(); i++ ) {
     double xi = xi_space[i];
     threads[i] = new std::thread ( drift_path,
-				   std::vector <double> {xi, yi, 1.2},
+				   std::vector <double> {xi, yi, 0.5},
 				   potential,
 				   detector,
 				   std::ref(trajectories[i]) );

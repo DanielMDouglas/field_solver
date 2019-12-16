@@ -30,6 +30,12 @@ int wrap(int index, bool periodicity, int maxIndex) {
   return newIndex; 
 }
 
+bool double_equals(double a, double b)
+{
+  double epsilon = 0.001;
+  return (std::abs(a - b) < epsilon);
+}
+
 std::vector <double> linspace(double start, double end, int nPoints)
 {
   std::vector <double> result (nPoints);

@@ -96,5 +96,9 @@ if __name__ == '__main__':
     
     plt.xlabel(r'x [cm]')
     plt.ylabel(r'z [cm]')
+
+    plt.xlim(-1, 1)
+    plt.ylim(-1, 1)
+    plt.zlim(-1, 1)
     
     plt.show()

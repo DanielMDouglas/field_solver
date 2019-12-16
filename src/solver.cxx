@@ -476,6 +476,7 @@ void solver::solve_static()
 	    << '\t'
 	    << "Stepwise Difference Norm:"
 	    << std::endl;
+
   for ( int iter = 0; iter < nIter; iter++ ) {
     relax(1);
 
@@ -601,29 +602,59 @@ void solver::set_VN()
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
 	if ( not is_boundary -> get(i, j, k) ) {
-	  if ( is_von_neumann -> get(i+1, j, k) ) {
+	  if ( is_von_neumann -> get(wrap(i+1, bound -> periodicX, nPointsX),
+				     wrap(j, bound -> periodicY, nPointsY),
+				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i+1, j, k,
-			     potential -> get(i, j, k) - von_neumann_dV -> get(i+1, j, k));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i+1, bound -> periodicX, nPointsX),
+						     wrap(j, bound -> periodicY, nPointsY),
+						     wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(i-1, j, k) ) {
+	  if ( is_von_neumann -> get(wrap(i-1, bound -> periodicX, nPointsX),
+				     wrap(j, bound -> periodicY, nPointsY),
+				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i-1, j, k,
-			     potential -> get(i, j, k) + von_neumann_dV -> get(i-1, j, k));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i-1, bound -> periodicX, nPointsX),
+						     wrap(j, bound -> periodicY, nPointsY),
+						     wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(i, j+1, k) ) {
+	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				     wrap(j+1, bound -> periodicY, nPointsY),
+				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j+1, k,
-			     potential -> get(i, j, k) - von_neumann_dV -> get(i, j+1, k));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						     wrap(j+1, bound -> periodicY, nPointsY),
+						     wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(i, j-1, k) ) {
+	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				     wrap(j-1, bound -> periodicY, nPointsY),
+				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j-1, k,
-			     potential -> get(i, j, k) + von_neumann_dV -> get(i, j-1, k));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						     wrap(j-1, bound -> periodicY, nPointsY),
+						     wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(i, j, k+1) ) {
+	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				     wrap(j, bound -> periodicY, nPointsY),
+				     wrap(k+1, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j, k+1,
-			     potential -> get(i, j, k) - von_neumann_dV -> get(i, j, k+1));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						     wrap(j, bound -> periodicY, nPointsY),
+						     wrap(k+1, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(i, j, k-1) ) {
+	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				     wrap(j, bound -> periodicY, nPointsY),
+				     wrap(k-1, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j, k-1,
-			     potential -> get(i, j, k) + von_neumann_dV -> get(i, j, k-1));
+			     potential -> get(i, j, k)
+			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						     wrap(j, bound -> periodicY, nPointsY),
+						     wrap(k-1, bound -> periodicZ, nPointsZ)));
 	  }
 	}
       }
@@ -727,7 +758,6 @@ void solver::relax(int nThreads = 2)
 	for ( int k = 0; k < potential -> zSize; k++ ) {
 	  if ( not  is_boundary -> get(i, j, k) ) {
 	    double sum = 0;
-
 	    sum += a1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
 						       wrap(j, bound -> periodicY, nPointsY),
 						       wrap(k+1, bound -> periodicZ, nPointsZ));

@@ -164,12 +164,12 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
       trajectory -> fate = "conductor";
       break;
     }
-    // check volume
-    if ( b.is_in_volume(pos[0], pos[1], pos[2]) ) {
-      std::cout << "particle terminated in a volume!" << std::endl;
-      trajectory -> fate = "volume";
-      break;
-    }
+    // // check volume
+    // if ( b.is_in_volume(pos[0], pos[1], pos[2]) ) {
+    //   std::cout << "particle terminated in a volume!" << std::endl;
+    //   trajectory -> fate = "volume";
+    //   break;
+    // }
     // move forward one step
     else {
       // assume T = boiling point of Ar for now

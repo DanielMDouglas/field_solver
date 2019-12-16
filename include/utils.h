@@ -6,6 +6,8 @@
 
 int wrap(int, bool, int);
 
+bool double_equals(double, double);
+
 // unit vectors
 const std::vector <double> xhat = {1., 0., 0.};
 const std::vector <double> yhat = {0., 1., 0.};

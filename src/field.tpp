@@ -166,7 +166,9 @@ field<T>::field(std::string filename)
 template <typename T>
 void field<T>::set(int i, int j, int k, T value)
 {
-  values[ySize*zSize*i + zSize*j + k] = value;
+  if ( (0 <= i < xSize) and (0 <= j < ySize) and (0 <= k < zSize) ) { 
+    values[ySize*zSize*i + zSize*j + k] = value;
+  }
 }
 
 template <typename T>

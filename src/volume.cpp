@@ -4,7 +4,7 @@
 #include "utils.h"
 
 volume::volume(nlohmann::json volume_json)
-{  
+{
   std::cout << "# Constructing " << volume_json["type"]
 	    << " volume, " << volume_json["description"] << std::endl;
 
@@ -98,13 +98,26 @@ double volume::get_voltage(double x, double y, double z)
 
 bool volume::is_in_boundary(double x, double y, double z)
 {
-  if ( ( Xmin <= x ) and
-       ( x <= Xmax ) and
-       ( Ymin <= y ) and
-       ( y <= Ymax ) and
-       ( Zmin <= z ) and
-       ( z <= Zmax ) ) {
+  // std::cout << description << '\n'
+  // 	    << x << '\t' << y << '\t' << z << '\n'
+  // 	    << Xmin << '\t' << Ymin << '\t' << Zmin << '\n'
+  // 	    << Xmax << '\t' << Ymax << '\t' << Zmax << '\n'
+  // 	    << ( Xmin < x ) << '\t' << double_equals( Xmin, x ) << '\n'
+  // 	    << ( x < Xmax ) << '\t' << double_equals( x, Xmax ) << '\n'
+  // 	    << ( Ymin < y ) << '\t' << double_equals( Ymin, y ) << '\n'
+  // 	    << ( y < Ymax ) << '\t' << double_equals( y, Ymax ) << '\n'
+  // 	    << ( Zmin < z ) << '\t' << double_equals( Zmin, z ) << '\n'
+  // 	    << ( z < Zmax ) << '\t' << double_equals( z, Zmax ) << std::endl;
+  
+  if ( (( Xmin < x ) or double_equals( Xmin, x )) and
+       (( x < Xmax ) or double_equals( x, Xmax )) and
+       (( Ymin < y ) or double_equals( Ymin, y )) and
+       (( y < Ymax ) or double_equals( y, Ymax )) and
+       (( Zmin < z ) or double_equals( Zmin, z )) and
+       (( z < Zmax ) or double_equals( z, Zmax )) ) {
     return true;
   }
-  else return false;
+  else {
+    return false;
+  }
 }
