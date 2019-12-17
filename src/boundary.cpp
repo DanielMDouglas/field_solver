@@ -51,7 +51,7 @@ bool boundary::is_in_VN(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
     if ( volumes[i] -> is_in_boundary(x, y, z) ) {
-      return volumes[i] -> type == "VN";
+      return volumes[i] -> type == "von Neumann";
     }
   }
   return false;
@@ -70,10 +70,13 @@ bool boundary::is_in_volume(double x, double y, double z)
 double boundary::boundary_value(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( ( ( volumes[i] -> type == "conductor" )
-	   or ( volumes[i] -> type == "VN" ) )
-	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
-      return volumes[i] -> V(x, y, z);
+    if ( volumes[i] -> is_in_boundary(x, y, z) ) {
+      if ( volumes[i] -> type == "conductor" ) {
+	return volumes[i] -> V(x, y, z);
+      }
+      else if ( volumes[i] -> type == "von Neumann" ) {
+	return 0xdeadbeef;
+      }
     }
   }
   return 0;
@@ -82,7 +85,7 @@ double boundary::boundary_value(double x, double y, double z)
 double boundary::Efield(double x, double y, double z)
 {
   for ( int i = 0; i < nVolumes; i++ ) {
-    if ( ( volumes[i] -> type == "VN" )
+    if ( ( volumes[i] -> type == "von Neumann" )
 	 and ( volumes[i] -> is_in_boundary(x, y, z) ) ) {
       return volumes[i] -> Efield;
     }

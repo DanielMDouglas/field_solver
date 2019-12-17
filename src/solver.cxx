@@ -503,8 +503,8 @@ void solver::solve_static()
       }
     }
   }
-  
-  // field <double> * VNtemp = new field <double> (x_axis, y_axis, y_axis, constant(0.));
+
+  fill_empty_VN();
   fill_empty_VN();
 
   std::cout << "# final stepwise difference: "
@@ -833,6 +833,7 @@ int main(int argc, char const * argv[])
   thisSolver.sigVal -> print_to_file("cond_map.dat");
   thisSolver.is_dirichlet -> print_to_file("dirichlet_map.dat");
   thisSolver.is_von_neumann -> print_to_file("VN_map.dat");
+  thisSolver.von_neumann_dV -> print_to_file("VNdV_map.dat");
   thisSolver.epVal -> print_to_file("perm_map.dat");
   thisSolver.potential -> print_to_file("initial.dat");
   
