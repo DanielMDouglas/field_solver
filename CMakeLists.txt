@@ -31,9 +31,16 @@ find_package(ROOT REQUIRED COMPONENTS RIO Net)
 #
 # include(${Geant4_USE_FILE})
 if(ROOT_FOUND)
-  include_directories(${ROOT_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include)
+  include_directories(${ROOT_INCLUDE_DIRS})
+endif()
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
+
+set(JSON_INCLUDE_DIR $ENV{JSON_DIR})
+if (DEFINED JSON_INCLUDE_DIR)
+   include_directories(${JSON_INCLUDE_DIR})
 else()
-  include_directories(${PROJECT_SOURCE_DIR}/include)
+   # Will look for JSON in usual include dirs (/usr/local/include)
 endif()
 
 include(FindOpenMP)
