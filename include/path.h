@@ -17,6 +17,10 @@ class path
 
   path(double);
   path(std::string);
+  path * copy();
+  void reflectX();
+  void reflectY();
+  void reflectZ();
   void shift(std::vector <double>);
   void print_to_file(std::string);
 };

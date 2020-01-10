@@ -5,7 +5,7 @@
 #include <functional>
 
 int wrap(int, bool, int);
-
+int triangle(int);
 bool double_equals(double, double);
 
 // unit vectors

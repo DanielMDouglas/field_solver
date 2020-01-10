@@ -1,0 +1,139 @@
+{
+    "name": "capacitor",
+    "periodicity": {"x": false,
+		    "y": false,
+		    "z": false
+		   },
+    "bounds": {
+	"xmin": -1,
+	"xmax": 1,
+	"ymin": -1,
+	"ymax": 1,
+	"zmin": -1,
+	"zmax": 1
+    },
+    "volumes": [{"type": "conductor",
+		 "xmin": -1,
+		 "xmax": -0.98,
+		 "ymin": -1,
+		 "ymax": 1,
+		 "zmin": -1,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": 0.98,
+		 "xmax": 1,
+		 "ymin": -1,
+		 "ymax": 1,
+		 "zmin": -1,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": -1,
+		 "xmax": 1,
+		 "ymin": -1,
+		 "ymax": -0.98,
+		 "zmin": -1,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": -1,
+		 "xmax": 1,
+		 "ymin": 0.98,
+		 "ymax": 1,
+		 "zmin": -1,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": -1,
+		 "xmax": 1,
+		 "ymin": -1,
+		 "ymax": 1,
+		 "zmin": -1,
+		 "zmax": -0.98,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": -1,
+		 "xmax": 1,
+		 "ymin": -1,
+		 "ymax": 1,
+		 "zmin": 0.98,
+		 "zmax": 1,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "wall"
+		},
+		{"type": "conductor",
+		 "xmin": -0.6,
+		 "xmax": 0.6,
+		 "ymin": -0.6,
+		 "ymax": 0.6,
+		 "zmin": 0.89,
+		 "zmax": 0.91,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "anode plane"
+		},
+		{"type": "conductor",
+		 "xmin": -0.6,
+		 "xmax": 0.6,
+		 "ymin": -0.6,
+		 "ymax": 0.6,
+		 "zmin": -0.01,
+		 "zmax": 0.01,
+		 "voltage": {"function_name": "constant",
+			     "args": [1]
+			    },
+		 "description": "cathode plane"
+		},
+		{"type": "conductor",
+		 "xmin": -0.6,
+		 "xmax": 0.6,
+		 "ymin": -0.6,
+		 "ymax": 0.6,
+		 "zmin": -0.91,
+		 "zmax": -0.89,
+		 "voltage": {"function_name": "constant",
+			     "args": [0]
+			    },
+		 "description": "anode plane"
+		},
+		{"type": "dielectric",
+		 "xmin": -1,
+		 "xmax": 1,
+		 "ymin": -1,
+		 "ymax": 1,
+		 "zmin": -1,
+		 "zmax": 1,
+		 "permittivity": {"function_name": "constant",
+				  "args": [1]
+				 },
+		 "conductivity": {"function_name": "constant",
+				  "args": [0]
+				 },
+		 "description": "dielectric"
+		}
+	       ]
+}

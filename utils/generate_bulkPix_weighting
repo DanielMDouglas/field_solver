@@ -1,0 +1,37 @@
+#!/usr/bin/python
+
+from bulkPix import *
+
+# number of pads in both directions (excluding the 0, 0 pad)
+nPads = 4
+
+xmax = pad_pitch*(-1./2 + nPads) + wall_thickness
+ymax = pad_pitch*(-1./2 + nPads) + wall_thickness
+
+volumes = []
+
+volumes.append(generate_central_pad(1.))
+
+volumes = volumes + generate_other_pads(nPads)
+
+volumes = volumes + generate_boundaries(xmax, ymax, weighting = True)
+
+volumes.append(generate_argon(xmax, ymax))
+
+top_level = {"name": "pixel pads",
+             "periodicity": {"x": False,
+                             "y": False,
+                             "z": False},
+             "bounds": {"xmin": xmin,
+                        "xmax": xmax,
+                        "ymin": ymin,
+                        "ymax": ymax,
+                        "zmin": zmin,
+                        "zmax": zmax},
+             "volumes": volumes}
+
+enc = encoder.JSONEncoder(separators=(',', ': '),
+                          indent = 4,
+                          sort_keys = True)
+
+print enc.encode(top_level)

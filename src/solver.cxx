@@ -17,7 +17,7 @@ volatile int sig_int = 0;
 std::string startingSol = "none";
 std::string startingQ = "none";
 std::string outFileName = "final.dat";
-std::string geom = "bulkPix";
+std::string geom = "geometries/bulkPix.json";
 int nIter = 100000;
 int iterFreq = 100;
 double tolerance = 1.e-15;
@@ -73,6 +73,10 @@ void handleOpts(int argc, char const * argv[])
       verbose = true;
       opt--;
     }
+    if (optValue.str() == "-h" ) {
+      sayUsage();
+      
+    }
   }
 
   std::cout << "####################################" << '\n'
@@ -89,6 +93,24 @@ void handleOpts(int argc, char const * argv[])
 	    << "# spacing:             " << initSpacing << '\n'
 	    << "# verbose:             " << verbose << '\n'
 	    << "####################################" << std::endl;
+}
+
+void sayUsage()
+{
+  std::cout << "Usage: ./solver [OPTIONS]" << std::endl
+	    << "-i" << '\t' << "starting solution, default: none" << std::endl
+	    << "-q" << '\t' << "starting charge distribution, default: none" << std::endl
+	    << "-o" << '\t' << "output, default: final.dat" << std::endl
+	    << "-g" << '\t' << "geometry JSON, default: geometries/bulkPix.json" << std::endl
+	    << "-n" << '\t' << "maximum number of iterations, default: 100000" << std::endl
+	    << "-f" << '\t' << "frequency of reporting, default: 100" << std::endl
+	    << "-t" << '\t' << "threshold for stopping relaxation, default: 1e-15" << std::endl
+    	    << "-w" << '\t' << "over-relaxation factor, default: 1" << std::endl
+	    << "-N" << '\t' << "number of vertices, default: number specified by spacing" << std::endl
+	    << "-u" << '\t' << "number of upscaling operations, default: 0" << std::endl
+	    << "-s" << '\t' << "grid spacing, default: 0.01 (cm)" << std::endl
+	    << "-v" << '\t' << "verbosity (each reporting on a new line), default: false" << std::endl
+	    << "-h" << '\t' << "display this help and exit" << std::endl;
 }
 
 void term(int signum)
@@ -504,8 +526,9 @@ void solver::solve_static()
     }
   }
 
-  fill_empty_VN();
-  fill_empty_VN();
+  for ( int i = 0; i < 10; i++ ) {
+    fill_empty_VN();
+  }
 
   std::cout << "# final stepwise difference: "
 	    << squared_sum(resid, is_boundary)
@@ -840,7 +863,7 @@ int main(int argc, char const * argv[])
   // thisSolver.solve_charge();
   thisSolver.solve_static();
   for ( int order = 0; order < nUpscale; order++ ) {
-    thisSolver.upscale(3);
+    thisSolver.upscale(2);
     thisSolver.solve_static();
   }
   thisSolver.potential -> print_to_file(outFileName);

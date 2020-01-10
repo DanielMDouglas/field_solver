@@ -1,0 +1,127 @@
+{
+    "bounds": {
+        "xmax": 0.22,
+        "xmin": -0.02,
+        "ymax": 0.22,
+        "ymin": -0.02,
+        "zmax": 0.5,
+        "zmin": 0
+    },
+    "name": "pixel pads",
+    "periodicity": {
+        "x": false,
+        "y": false,
+        "z": false
+    },
+    "volumes": [
+        {
+            "description": "central pad",
+            "type": "conductor",
+            "voltage": {
+                "args": [
+                    0
+                ],
+                "function_name": "constant"
+            },
+            "xmax": 0.15,
+            "xmin": -0.02,
+            "ymax": 0.15,
+            "ymin": -0.02,
+            "zmax": 0.02,
+            "zmin": 0
+        },
+        {
+            "description": "back plane",
+            "type": "conductor",
+            "voltage": {
+                "args": [
+                    -20.0
+                ],
+                "function_name": "constant"
+            },
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.02,
+            "zmin": 0
+        },
+        {
+            "Efield": 500.0,
+            "description": "to main volume",
+            "type": "von Neumann",
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.5,
+            "zmin": 0.48
+        },
+        {
+            "Efield": 0,
+            "description": "x symmetry",
+            "type": "von Neumann",
+            "xmax": 0.0,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.5,
+            "zmin": 0
+        },
+        {
+            "Efield": 0,
+            "description": "y symmetry",
+            "type": "von Neumann",
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.0,
+            "ymin": -0.02,
+            "zmax": 0.5,
+            "zmin": 0
+        },
+        {
+            "Efield": 0,
+            "description": "x symmetry",
+            "type": "von Neumann",
+            "xmax": 0.22,
+            "xmin": 0.2,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.5,
+            "zmin": 0
+        },
+        {
+            "Efield": 0,
+            "description": "y symmetry",
+            "type": "von Neumann",
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": 0.2,
+            "zmax": 0.5,
+            "zmin": 0
+        },
+        {
+            "conductivity": {
+                "args": [
+                    0
+                ],
+                "function_name": "constant"
+            },
+            "description": "argon",
+            "permittivity": {
+                "args": [
+                    4
+                ],
+                "function_name": "constant"
+            },
+            "type": "dielectric",
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.5,
+            "zmin": 0
+        }
+    ]
+}

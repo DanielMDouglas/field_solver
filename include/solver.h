@@ -7,6 +7,10 @@
 
 #include <vector>
 
+void handleOpts(int, char const *);
+void sayUsage();
+void term(int);
+
 class solver
 {
  public:

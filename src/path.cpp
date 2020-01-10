@@ -66,6 +66,42 @@ path::path(std::string filename)
   }
 }
 
+path * path::copy()
+{
+  path * newPath = new path(dt);
+  newPath -> pos = pos;
+  newPath -> vel = vel;
+  newPath -> fate = fate;
+  newPath -> arrivalTime = arrivalTime;
+  
+  return newPath;
+}
+
+void path::reflectX()
+{
+  for ( uint i = 0; i < pos.size(); i++ ) {
+    pos[i][0] = -pos[i][0];
+    vel[i][0] = -vel[i][0];
+  }
+
+}
+
+void path::reflectY()
+{
+  for ( uint i = 0; i < pos.size(); i++ ) {
+    pos[i][1] = -pos[i][1];
+    vel[i][1] = -vel[i][1];
+  }
+}
+
+void path::reflectZ()
+{
+  for ( uint i = 0; i < pos.size(); i++ ) {
+    pos[i][2] = -pos[i][2];
+    vel[i][2] = -vel[i][2];
+  }
+}
+
 void path::shift(std::vector <double> offset)
 {
   for ( uint i = 0; i < pos.size(); i++ ) {

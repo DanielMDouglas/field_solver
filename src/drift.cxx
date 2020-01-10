@@ -49,19 +49,19 @@ int main(int argc, char const * argv[])
   field <double> * potential = new field <double> (fieldFileName);
   boundary detector (geom);
   
-  const int nPaths = 50;
+  const int nPaths = 25;
 
   std::thread * threads [nPaths];
   path * trajectories [nPaths];
 
-  double yi = 0;
+  double yi = 0.;
 
-  std::vector <double> xi_space = linspace(0., 0.88, nPaths);
+  std::vector <double> xi_space = linspace(0.0, 0.19, nPaths);
 
   for ( int i = 0; i < xi_space.size(); i++ ) {
     double xi = xi_space[i];
     threads[i] = new std::thread ( drift_path,
-				   std::vector <double> {xi, yi, 0.5},
+				   std::vector <double> {xi, yi, 0.45},
 				   potential,
 				   detector,
 				   std::ref(trajectories[i]) );

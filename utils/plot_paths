@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.collections import LineCollection
 import sys
+from json import decoder
 
 def read_csv(infileName):
     data = np.loadtxt(infileName, skiprows = 1, delimiter = ',')
@@ -13,79 +14,41 @@ def read_csv(infileName):
     x = data[:,1]
     y = data[:,2]
     z = data[:,3]
-    # values = np.reshape(data[:,3], (x.size, y.size, z.size), order='C')
 
     return t, x, y, z
 
 # def get_potential(x, y, z):
 
-def plot_wires():
-    wireX = np.concatenate([3*[i] for i in np.linspace(-0.9, 0.9, 7)])
-    wireY = np.array([i for i in np.linspace(0, 0.6, 3)]*7)
+def draw_geo(infileName, ax):
+    raw_text = file(infileName).read()
+    dec = decoder.JSONDecoder()
+    json = dec.decode(raw_text)
 
-    plt.scatter(wireX, wireY, color = 'red')
+    for volume in json["volumes"]:
+        if volume["description"] == "central pad" or volume["description"] == "other pad":
+            ll_corner = (volume["xmin"], volume["zmin"])
+            width = volume["xmax"] - volume["xmin"]
+            thickness = volume["zmax"] - volume["zmin"]
+            rect = patches.Rectangle(ll_corner,
+                                     width,
+                                     thickness,
+                                     edgecolor = 'r',
+                                     facecolor = 'r')
+            ax.add_patch(rect)
 
-def plot_pads(ax):
-    padSize = 0.2
-    padThickness = 0.05
-    spacing = 0.2
-    xLow = -1.4
-    xHigh = 1.4
-    # nPadsPerRow = int((xHigh - xLow)/(padSize + spacing))
-    nPadsPerRow = 7
-    # pads
-    for i in range(nPadsPerRow):
-        rect = patches.Rectangle((xLow + spacing/2 + (padSize + spacing)*i,
-                                  -padThickness/2),
-                                 padSize,
-                                 padThickness,
-                                 edgecolor = 'r',
-                                 facecolor = 'r')
-        ax.add_patch(rect)
-    # # left half-space
-    # rect = patches.Rectangle((xLow,
-    #                           -padThickness/2),
-    #                          spacing/2,
-    #                          padThickness,
-    #                          edgecolor = 'y',
-    #                          facecolor = 'y')
-    # ax.add_patch(rect)
-    # # right half-space
-    # rect = patches.Rectangle((xHigh - spacing/2,
-    #                           -padThickness/2),
-    #                          spacing/2,
-    #                          padThickness,
-    #                          edgecolor = 'y',
-    #                          facecolor = 'y')
-    # ax.add_patch(rect)
-        
-    # for i in range(nPadsPerRow-1):
-    #     rect = patches.Rectangle((xLow + spacing/2 + padSize + (padSize + spacing)*i,
-    #                               -padThickness/2),
-    #                              spacing,
-    #                              padThickness,
-    #                              edgecolor = 'y',
-    #                              facecolor = 'y')
-    #     ax.add_patch(rect)
-
-    # rect = patches.Rectangle((xLow + spacing + padSize + (padSize + spacing)*i,
-    #                           -0.025),
-    #                          spacing,
-    #                          0.05,
-    #                          edgecolor = 'y',
-    #                          facecolor = 'y')
-    # ax.add_patch(rect)
-
+    ax.set_xlim(json["bounds"]["xmin"], json["bounds"]["xmax"])
+    ax.set_ylim(json["bounds"]["zmin"], json["bounds"]["zmax"])
 
 if __name__ == '__main__':
-    infileNames = sys.argv[1:]
-    if not infileNames:
+    geoFileName = sys.argv[1]
+    driftFileNames = sys.argv[2:]
+    if not driftFileNames:
         print "Please specify the file to use!"
         print "Usage: drift_path [fieldData.dat]"
 
     fig, ax = plt.subplots(1)
-        
-    for infileName in infileNames:
+
+    for infileName in driftFileNames:
         t, x, y, z = read_csv(infileName)
 
         # plt.plot(patharray[:,0], patharray[:,2], c = 'blue')
@@ -111,13 +74,12 @@ if __name__ == '__main__':
 
     cb = plt.colorbar(line)
     cb.set_label(r't [$\mu$s]')
-    # plot_pads(ax)
+    draw_geo(geoFileName, ax)
     # plot_wires()
     
     plt.xlabel(r'x [cm]')
     plt.ylabel(r'z [cm]')
 
-    plt.xlim(-0.005, 0.2)
     # plt.colorbar()
     
     plt.show()

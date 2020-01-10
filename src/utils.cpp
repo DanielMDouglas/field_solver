@@ -30,6 +30,15 @@ int wrap(int index, bool periodicity, int maxIndex) {
   return newIndex; 
 }
 
+int triangle(int a) {
+  if ( a == 1 ) {
+    return a;
+  }
+  else {
+    return a + triangle(a - 1);
+  }
+}
+
 bool double_equals(double a, double b)
 {
   double epsilon = 0.001;
@@ -39,9 +48,14 @@ bool double_equals(double a, double b)
 std::vector <double> linspace(double start, double end, int nPoints)
 {
   std::vector <double> result (nPoints);
-  double delta = (end - start)/(nPoints - 1);
-  for ( int i = 0; i < nPoints; i++ ) {
-    result[i] = start + i*delta;
+  if ( nPoints == 1 ) {
+    result[0] = start;
+  }
+  else {
+    double delta = (end - start)/(nPoints - 1);
+    for ( int i = 0; i < nPoints; i++ ) {
+      result[i] = start + i*delta;
+    }
   }
   return result;
 }
