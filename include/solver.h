@@ -4,11 +4,13 @@
 #include "boundary.h"
 #include "utils.h"
 #include "field.h"
+#include "argParser.h"
 
 #include <vector>
 
 void handleOpts(int, char const *);
-void sayUsage();
+void saySettings();
+void sayUsage(arg_t);
 void term(int);
 
 class solver

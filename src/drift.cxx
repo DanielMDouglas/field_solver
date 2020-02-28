@@ -6,32 +6,28 @@
 #include <sstream>
 
 #include "drift.h"
+#include "argParser.h"
 
 std::string fieldFileName = "none";
 std::string geom = "bulkPix";
 
-void handleOpts(int argc, char const * argv[])
+void handleOpts(int argc, const char ** argv)
 {
-  int opt = 0;
-  while ( opt < argc ) {
-    std::stringstream optValue;
-    std::stringstream argValue;
-    optValue << argv[++opt];
-    argValue << argv[++opt];
-    
-    if ( optValue.str() == "-f" ) {
-      argValue >> fieldFileName;
-    }
-    if ( optValue.str() == "-g" ) {
-      argValue >> geom;
-    }
-  }
+  argParser parser;
 
+  parser.add_option("-f", [](arg_t ss) {*ss >> fieldFileName;});
+  parser.add_option("-g", [](arg_t ss) {*ss >> geom;});
+
+  parser.parse(argc, argv);
+  
   if ( fieldFileName == "none" ) {
     std::cout << "Need a field file!" << std::endl;
     exit(1);
   }
-  
+}
+
+void saySettings()
+{
   std::cout << "Using arguments: \n"
 	    << "potential field:  " << fieldFileName << '\n'
 	    << "geom:             " << geom << std::endl;
@@ -42,7 +38,7 @@ void handleOpts(int argc, char const * argv[])
 //   drift_path(std::vector <double> {xi, 0., 1.75}, potential, detector);
 // }
 
-int main(int argc, char const * argv[])
+int main(int argc, const char ** argv)
 {
   handleOpts(argc, argv);
   

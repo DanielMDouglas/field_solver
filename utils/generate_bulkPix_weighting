@@ -3,7 +3,7 @@
 from bulkPix import *
 
 # number of pads in both directions (excluding the 0, 0 pad)
-nPads = 4
+nPads = 2
 
 xmax = pad_pitch*(-1./2 + nPads) + wall_thickness
 ymax = pad_pitch*(-1./2 + nPads) + wall_thickness

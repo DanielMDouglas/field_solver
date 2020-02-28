@@ -9,7 +9,7 @@ xmin = 0 - wall_thickness
 ymin = 0 - wall_thickness
 
 zmin = 0
-zmax = 0.5
+zmax = 1
 
 def generate_central_pad(voltage):
     return {"type": "conductor",
@@ -24,32 +24,7 @@ def generate_central_pad(voltage):
             "description": "central pad"}
 
 def generate_boundaries(xmax, ymax, weighting = False):
-    if weighting:
-        voltage = 0.
-        Efield = 0.
-    else:
-        voltage = -20.
-        Efield = 500.
-    boundaries = [{"type": "conductor",
-                   "xmin": xmin,
-                   "xmax": xmax,
-                   "ymin": ymin,
-                   "ymax": ymax,
-                   "zmin": zmin,
-                   "zmax": zmin + wall_thickness,
-                   "voltage": {"function_name": "constant",
-                               "args": [voltage]},
-                   "description": "back plane"},
-                  {"type": "von Neumann",
-                   "xmin": xmin,
-                   "xmax": xmax,
-                   "ymin": ymin,
-                   "ymax": ymax,
-                   "zmin": zmax - wall_thickness,
-                   "zmax": zmax,
-                   "Efield": Efield,
-                   "description": "to main volume"},
-                  {"type": "von Neumann",
+    boundaries = [{"type": "von Neumann",
                    "xmin": xmin,
                    "xmax": xmin + wall_thickness,
                    "ymin": ymin,
@@ -85,6 +60,58 @@ def generate_boundaries(xmax, ymax, weighting = False):
                    "zmax": zmax,
                    "Efield": 0,
                    "description": "y symmetry"}]
+    if weighting:
+        Efield = 0.
+        boundaries.append({"type": "conductor",
+                           "xmin": xmin,
+                           "xmax": xmax,
+                           "ymin": ymin,
+                           "ymax": ymax,
+                           "zmin": zmin,
+                           "zmax": zmin + wall_thickness,
+                           "voltage": {"function_name": "constant",
+                                       "args": [0]},
+                           "description": "back plane"})
+        boundaries.append({"type": "von Neumann",
+                           "xmin": xmin,
+                           "xmax": xmax,
+                           "ymin": ymin,
+                           "ymax": ymax,
+                           "zmin": zmax - wall_thickness,
+                           "zmax": zmax,
+                           "Efield": Efield,
+                           "description": "to main volume"})
+        # boundaries.append({"type": "conductor",
+        #                    "xmin": xmin,
+        #                    "xmax": xmax,
+        #                    "ymin": ymin,
+        #                    "ymax": ymax,
+        #                    "zmin": zmax - wall_thickness,
+        #                    "zmax": zmax,
+        #                    "voltage": {"function_name": "constant",
+        #                                "args": [0]},
+        #                    "description": "to main volume"})
+    else:
+        Efield = 0.5
+        boundaries.append({"type": "conductor",
+                           "xmin": xmin,
+                           "xmax": xmax,
+                           "ymin": ymin,
+                           "ymax": ymax,
+                           "zmin": zmin,
+                           "zmax": zmin + wall_thickness,
+                           "voltage": {"function_name": "constant",
+                                       "args": [-0.02]},
+                           "description": "back plane"})
+        boundaries.append({"type": "von Neumann",
+                           "xmin": xmin,
+                           "xmax": xmax,
+                           "ymin": ymin,
+                           "ymax": ymax,
+                           "zmin": zmax - wall_thickness,
+                           "zmax": zmax,
+                           "Efield": Efield,
+                           "description": "to main volume"})
     return boundaries
 
 def generate_other_pads(nPads):

@@ -14,6 +14,7 @@ class path
   std::string fate;
   std::vector <std::vector <double>> pos;
   std::vector <std::vector <double>> vel;
+  std::vector <std::vector <double>> E;
 
   path(double);
   path(std::string);

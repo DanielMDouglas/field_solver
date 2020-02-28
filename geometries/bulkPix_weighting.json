@@ -1,10 +1,10 @@
 {
     "bounds": {
-        "xmax": 1.4200000000000002,
+        "xmax": 0.6200000000000001,
         "xmin": -0.02,
-        "ymax": 1.4200000000000002,
+        "ymax": 0.6200000000000001,
         "ymin": -0.02,
-        "zmax": 0.5,
+        "zmax": 1,
         "zmin": 0
     },
     "name": "pixel pads",
@@ -55,38 +55,6 @@
                 ],
                 "function_name": "constant"
             },
-            "xmax": 0.15,
-            "xmin": -0.15,
-            "ymax": 0.9500000000000001,
-            "ymin": 0.65,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.15,
-            "xmin": -0.15,
-            "ymax": 1.35,
-            "ymin": 1.0500000000000003,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
             "xmax": 0.55,
             "xmin": 0.25,
             "ymax": 0.15,
@@ -111,163 +79,47 @@
             "zmin": 0
         },
         {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.55,
-            "xmin": 0.25,
-            "ymax": 0.9500000000000001,
-            "ymin": 0.65,
-            "zmax": 0.02,
+            "Efield": 0,
+            "description": "x symmetry",
+            "type": "von Neumann",
+            "xmax": 0.0,
+            "xmin": -0.02,
+            "ymax": 0.6200000000000001,
+            "ymin": -0.02,
+            "zmax": 1,
             "zmin": 0
         },
         {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.55,
-            "xmin": 0.25,
-            "ymax": 1.35,
-            "ymin": 1.0500000000000003,
-            "zmax": 0.02,
+            "Efield": 0,
+            "description": "y symmetry",
+            "type": "von Neumann",
+            "xmax": 0.6200000000000001,
+            "xmin": -0.02,
+            "ymax": 0.0,
+            "ymin": -0.02,
+            "zmax": 1,
             "zmin": 0
         },
         {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.9500000000000001,
-            "xmin": 0.65,
-            "ymax": 0.15,
-            "ymin": -0.15,
-            "zmax": 0.02,
+            "Efield": 0,
+            "description": "x symmetry",
+            "type": "von Neumann",
+            "xmax": 0.6200000000000001,
+            "xmin": 0.6000000000000001,
+            "ymax": 0.6200000000000001,
+            "ymin": -0.02,
+            "zmax": 1,
             "zmin": 0
         },
         {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.9500000000000001,
-            "xmin": 0.65,
-            "ymax": 0.55,
-            "ymin": 0.25,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.9500000000000001,
-            "xmin": 0.65,
-            "ymax": 0.9500000000000001,
-            "ymin": 0.65,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.9500000000000001,
-            "xmin": 0.65,
-            "ymax": 1.35,
-            "ymin": 1.0500000000000003,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 1.35,
-            "xmin": 1.0500000000000003,
-            "ymax": 0.15,
-            "ymin": -0.15,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 1.35,
-            "xmin": 1.0500000000000003,
-            "ymax": 0.55,
-            "ymin": 0.25,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 1.35,
-            "xmin": 1.0500000000000003,
-            "ymax": 0.9500000000000001,
-            "ymin": 0.65,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "description": "other pad",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    0.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 1.35,
-            "xmin": 1.0500000000000003,
-            "ymax": 1.35,
-            "ymin": 1.0500000000000003,
-            "zmax": 0.02,
+            "Efield": 0,
+            "description": "y symmetry",
+            "type": "von Neumann",
+            "xmax": 0.6200000000000001,
+            "xmin": -0.02,
+            "ymax": 0.6200000000000001,
+            "ymin": 0.6000000000000001,
+            "zmax": 1,
             "zmin": 0
         },
         {
@@ -275,13 +127,13 @@
             "type": "conductor",
             "voltage": {
                 "args": [
-                    0.0
+                    0
                 ],
                 "function_name": "constant"
             },
-            "xmax": 1.4200000000000002,
+            "xmax": 0.6200000000000001,
             "xmin": -0.02,
-            "ymax": 1.4200000000000002,
+            "ymax": 0.6200000000000001,
             "ymin": -0.02,
             "zmax": 0.02,
             "zmin": 0
@@ -290,56 +142,12 @@
             "Efield": 0.0,
             "description": "to main volume",
             "type": "von Neumann",
-            "xmax": 1.4200000000000002,
+            "xmax": 0.6200000000000001,
             "xmin": -0.02,
-            "ymax": 1.4200000000000002,
+            "ymax": 0.6200000000000001,
             "ymin": -0.02,
-            "zmax": 0.5,
-            "zmin": 0.48
-        },
-        {
-            "Efield": 0,
-            "description": "x symmetry",
-            "type": "von Neumann",
-            "xmax": 0.0,
-            "xmin": -0.02,
-            "ymax": 1.4200000000000002,
-            "ymin": -0.02,
-            "zmax": 0.5,
-            "zmin": 0
-        },
-        {
-            "Efield": 0,
-            "description": "y symmetry",
-            "type": "von Neumann",
-            "xmax": 1.4200000000000002,
-            "xmin": -0.02,
-            "ymax": 0.0,
-            "ymin": -0.02,
-            "zmax": 0.5,
-            "zmin": 0
-        },
-        {
-            "Efield": 0,
-            "description": "x symmetry",
-            "type": "von Neumann",
-            "xmax": 1.4200000000000002,
-            "xmin": 1.4000000000000001,
-            "ymax": 1.4200000000000002,
-            "ymin": -0.02,
-            "zmax": 0.5,
-            "zmin": 0
-        },
-        {
-            "Efield": 0,
-            "description": "y symmetry",
-            "type": "von Neumann",
-            "xmax": 1.4200000000000002,
-            "xmin": -0.02,
-            "ymax": 1.4200000000000002,
-            "ymin": 1.4000000000000001,
-            "zmax": 0.5,
-            "zmin": 0
+            "zmax": 1,
+            "zmin": 0.98
         },
         {
             "conductivity": {
@@ -356,11 +164,11 @@
                 "function_name": "constant"
             },
             "type": "dielectric",
-            "xmax": 1.4200000000000002,
+            "xmax": 0.6200000000000001,
             "xmin": -0.02,
-            "ymax": 1.4200000000000002,
+            "ymax": 0.6200000000000001,
             "ymin": -0.02,
-            "zmax": 0.5,
+            "zmax": 1,
             "zmin": 0
         }
     ]

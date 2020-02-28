@@ -4,6 +4,7 @@
 #include "path.h"
 #include "field.h"
 
-void handOpts(int, char const *);
+void handOpts(int, const char **);
+void saySettings();
 
 #endif

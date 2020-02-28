@@ -31,33 +31,6 @@
             "zmin": 0
         },
         {
-            "description": "back plane",
-            "type": "conductor",
-            "voltage": {
-                "args": [
-                    -20.0
-                ],
-                "function_name": "constant"
-            },
-            "xmax": 0.22,
-            "xmin": -0.02,
-            "ymax": 0.22,
-            "ymin": -0.02,
-            "zmax": 0.02,
-            "zmin": 0
-        },
-        {
-            "Efield": 500.0,
-            "description": "to main volume",
-            "type": "von Neumann",
-            "xmax": 0.22,
-            "xmin": -0.02,
-            "ymax": 0.22,
-            "ymin": -0.02,
-            "zmax": 1,
-            "zmin": 0.98
-        },
-        {
             "Efield": 0,
             "description": "x symmetry",
             "type": "von Neumann",
@@ -100,6 +73,33 @@
             "ymin": 0.2,
             "zmax": 1,
             "zmin": 0
+        },
+        {
+            "description": "back plane",
+            "type": "conductor",
+            "voltage": {
+                "args": [
+                    -0.02
+                ],
+                "function_name": "constant"
+            },
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 0.02,
+            "zmin": 0
+        },
+        {
+            "Efield": 0.5,
+            "description": "to main volume",
+            "type": "von Neumann",
+            "xmax": 0.22,
+            "xmin": -0.02,
+            "ymax": 0.22,
+            "ymin": -0.02,
+            "zmax": 1,
+            "zmin": 0.98
         },
         {
             "conductivity": {

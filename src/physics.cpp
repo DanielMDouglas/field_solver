@@ -172,6 +172,7 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
       
       trajectory -> pos.push_back(pos);
       trajectory -> vel.push_back(vel);
+      trajectory -> E.push_back(Efield);
        
       pos = pos + vel*dt;
       t += dt;

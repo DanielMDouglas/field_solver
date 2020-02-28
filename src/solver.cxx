@@ -12,6 +12,7 @@
 
 #include "solver.h"
 #include "physics.h"
+#include "argParser.h"
 
 volatile int sig_int = 0;
 std::string startingSol = "none";
@@ -27,58 +28,32 @@ int nUpscale = 0;
 double initSpacing = 0.01; // cm  
 bool verbose = false;
 
-void handleOpts(int argc, char const * argv[])
+void handleOpts(int argc, const char ** argv)
 {
-  int opt = 0;
-  while ( opt < argc ) {
-    std::stringstream optValue;
-    std::stringstream argValue;
-    optValue << argv[++opt];
-    argValue << argv[++opt];
-    
-    if ( optValue.str() == "-i" ) {
-      argValue >> startingSol;
-    }
-    if ( optValue.str() == "-q" ) {
-      argValue >> startingQ;
-    }
-    if ( optValue.str() == "-o" ) {
-      argValue >> outFileName;
-    }
-    if ( optValue.str() == "-g" ) {
-      argValue >> geom;
-    }
-    if ( optValue.str() == "-n" ) {
-      argValue >> nIter;
-    }
-    if ( optValue.str() == "-f" ) {
-      argValue >> iterFreq;
-    }
-    if ( optValue.str() == "-t" ) {
-      argValue >> tolerance;
-    }
-    if ( optValue.str() == "-w" ) {
-      argValue >> w;
-    }
-    if ( optValue.str() == "-N" ) {
-      argValue >> N;
-    }
-    if ( optValue.str() == "-u" ) {
-      argValue >> nUpscale;
-    }
-    if ( optValue.str() == "-s" ) {
-      argValue >> initSpacing;
-    }
-    if (optValue.str() == "-v" ) {
-      verbose = true;
-      opt--;
-    }
-    if (optValue.str() == "-h" ) {
-      sayUsage();
-      
-    }
-  }
+  argParser parser;
+  
+  parser.add_option("-i", [](arg_t ss) {*ss >> startingSol;});
+  parser.add_option("-q", [](arg_t ss) {*ss >> startingQ;});
+  parser.add_option("-o", [](arg_t ss) {*ss >> outFileName;});
+  parser.add_option("-g", [](arg_t ss) {*ss >> geom;});
+  parser.add_option("-n", [](arg_t ss) {*ss >> nIter;});
+  parser.add_option("-f", [](arg_t ss) {*ss >> iterFreq;});
+  parser.add_option("-t", [](arg_t ss) {*ss >> tolerance;});
+  parser.add_option("-w", [](arg_t ss) {*ss >> w;});
+  parser.add_option("-N", [](arg_t ss) {*ss >> N;});
+  parser.add_option("-u", [](arg_t ss) {*ss >> nUpscale;});
+  parser.add_option("-s", [](arg_t ss) {*ss >> initSpacing;;});
 
+  parser.add_flag("-v", [](arg_t ss) {verbose = true;});
+  parser.add_flag("-h", sayUsage);
+
+  parser.parse(argc, argv);
+
+  saySettings();
+}
+
+void saySettings()
+{
   std::cout << "####################################" << '\n'
 	    << "# Using arguments: \n"
 	    << "# inFile:              " << startingSol << '\n'
@@ -95,7 +70,7 @@ void handleOpts(int argc, char const * argv[])
 	    << "####################################" << std::endl;
 }
 
-void sayUsage()
+void sayUsage(arg_t ss)
 {
   std::cout << "Usage: ./solver [OPTIONS]" << std::endl
 	    << "-i" << '\t' << "starting solution, default: none" << std::endl
@@ -838,7 +813,7 @@ int solver::report(int iter)
   return 0;
 }
 
-int main(int argc, char const * argv[])
+int main(int argc, const char ** argv)
 {
   handleOpts(argc, argv);
 

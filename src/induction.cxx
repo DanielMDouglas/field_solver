@@ -8,6 +8,7 @@
 #include "induction.h"
 #include "physics.h"
 #include "pad.h"
+#include "argParser.h"
 
 std::string potFileName = "none";
 std::string weightFileName = "none";
@@ -15,28 +16,16 @@ std::string geom = "geometries/bulkPix.json";
 
 std::string outFileName = "event.dat";
 
-void handleOpts(int argc, char const * argv[])
+void handleOpts(int argc, const char ** argv)
 {
-  int opt = 0;
-  while ( opt < argc ) {
-    std::stringstream optValue;
-    std::stringstream argValue;
-    optValue << argv[++opt];
-    argValue << argv[++opt];
+  argParser parser;
+
+  parser.add_option("-p", [](arg_t ss) {*ss >> potFileName;});
+  parser.add_option("-w", [](arg_t ss) {*ss >> weightFileName;});
+  parser.add_option("-g", [](arg_t ss) {*ss >> geom;});
+  parser.add_option("-o", [](arg_t ss) {*ss >> outFileName;});
     
-    if ( optValue.str() == "-p" ) {
-      argValue >> potFileName;
-    }
-    if ( optValue.str() == "-w" ) {
-      argValue >> weightFileName;
-    }
-    if ( optValue.str() == "-g" ) {
-      argValue >> geom;
-    }
-    if ( optValue.str() == "-o" ) {
-      argValue >> outFileName;
-    }
-  }
+  parser.parse(argc, argv);
 
   if ( potFileName == "none" ) {
     std::cout << "Need a potential field file!" << std::endl;
@@ -47,6 +36,11 @@ void handleOpts(int argc, char const * argv[])
     exit(1);
   }
 
+  saySettings();
+}
+
+void saySettings()
+{
   std::cout << "Using arguments: \n"
 	    << "potential field:     " << potFileName << '\n'
 	    << "weighting field:     " << weightFileName << '\n'
@@ -55,7 +49,7 @@ void handleOpts(int argc, char const * argv[])
 	    << std::endl;
 }
 
-int main(int argc, char const * argv[])
+int main(int argc, const char ** argv)
 {
   handleOpts(argc, argv);
   
@@ -63,10 +57,10 @@ int main(int argc, char const * argv[])
   field <double> * weight = new field <double> (weightFileName);
   boundary detector (geom);
 
-  const int nPads = 4;
+  const int nPads = 2;
   // How finely to sample the drift paths
   // 1 is just the central (head-on) path
-  const int fillFac = 3;
+  const int fillFac = 8;
   const int pathsPerPad = (2*(fillFac - 1) + 1);
   const double padPitch = 0.4;
 
@@ -84,10 +78,10 @@ int main(int argc, char const * argv[])
   // std::thread * threads [nPaths*nPaths];
   path * trajectories [nPathsInduct*nPathsInduct];
   bool trajIsSet [nPathsInduct*nPathsInduct] = {false};
-  
+
   std::vector <double> xi_space = linspace(0, endPoint, nPaths);
   std::vector <double> yi_space = linspace(0, endPoint, nPaths);
-  double zi = 0.4;
+  double zi = 0.9;
   
   for ( int i = 0; i < xi_space.size(); i++ ) {
     double xi = xi_space[i];
@@ -108,7 +102,7 @@ int main(int argc, char const * argv[])
 
   std::vector <double> xiInduct_space = linspace(0, endPointInduct, nPathsInduct);
   std::vector <double> yiInduct_space = linspace(0, endPointInduct, nPathsInduct);
-
+  
   for ( int i = 0; i < xiInduct_space.size(); i++ ) {
     double xi = xiInduct_space[i];
     for ( int j = 0; j < yiInduct_space.size(); j++ ) {
@@ -141,19 +135,16 @@ int main(int argc, char const * argv[])
 	thisTraj -> shift({iOffset*padPitch, jOffset*padPitch, 0});
 
 	trajectories[i*nPathsInduct + j] = thisTraj;
-	
-	// std::cout << i << ", " << xi << ", " << iOffset << ", " << iReflect << ", " << iPreCalc << '\t'
-	// 	  << j << ", " << yi << '\t' << jOffset << ", " << jReflect << ", " << jPreCalc
-	// 	  << std::endl;
       }
     }
+
     std::ostringstream stringStream1;
     stringStream1 << "drift_from_" << xi << ".dat";
     trajectories[i*nPathsInduct] -> print_to_file(stringStream1.str());
-
+    
     std::ostringstream stringStream2;
     stringStream2 << "wf_from_" << xi << ".dat";
-    std::vector <double> pSeries = ramo_induction(e,
+    std::vector <double> pSeries = ramo_induction(-e,
 						  trajectories[i*nPathsInduct],
 						  weight);
     std::ofstream outFile (stringStream2.str().c_str());
@@ -162,46 +153,6 @@ int main(int argc, char const * argv[])
     }
     outFile.close();
   }
-  
-  // for ( int i = 0; i < xi_space.size(); i++ ) {
-  //   double xi = xi_space[i];
-  //   for ( int j = 0; j <= i; j++ ) {
-  //     double yi = yi_space[j];
-  //     threads[i*nPaths + j] -> join();
-  //     // std::vector <double> pSeries = ramo_induction(e,
-  //     // 						    trajectories[i*nPaths + j],
-  //     // 						    weight);
-  //     std::cout << "done the thing here " << i << '\t' << j << std::endl;
-  //   }
-  // }
-  
-  // int Nsegments = 50;
-  // double t0 = 0;
-  // double dx = 0.01;
-  // path * driftPaths [Nsegments];
-  // for ( int i = 0; i < Nsegments; i++ ) {
-  //   pad * centerPad = new pad(150, std::vector <double> {0,0,0});
-
-  //   double xi = i*dx;
-  //   std::vector <double> startingPos = {xi, 0, 0};
-  //   std::cout << startingPos[0] << std::endl;
-    
-  //   driftPaths[i] = new path (dt);
-  //   drift_path(startingPos, potential, bound, driftPaths[i]);
-
-  //   centerPad -> add_response(e, t0, startingPos, driftPaths[i],
-  // 			      potential, weight, bound);
-
-  //   std::stringstream responseFile;
-  //   responseFile << "responses/" << xi << ".dat";
-  //   centerPad -> print_current_to_file(responseFile.str());
-
-  //   std::stringstream driftPathFile;
-  //   driftPathFile << "paths/" << xi << ".dat";
-  //   driftPaths[i] -> print_to_file(driftPathFile.str());
-    
-  //   delete centerPad;
-  // }
 
   return 0;
 }

@@ -71,6 +71,7 @@ path * path::copy()
   path * newPath = new path(dt);
   newPath -> pos = pos;
   newPath -> vel = vel;
+  newPath -> E = E;
   newPath -> fate = fate;
   newPath -> arrivalTime = arrivalTime;
   
@@ -82,6 +83,7 @@ void path::reflectX()
   for ( uint i = 0; i < pos.size(); i++ ) {
     pos[i][0] = -pos[i][0];
     vel[i][0] = -vel[i][0];
+    E[i][0] = -E[i][0];
   }
 
 }
@@ -91,6 +93,7 @@ void path::reflectY()
   for ( uint i = 0; i < pos.size(); i++ ) {
     pos[i][1] = -pos[i][1];
     vel[i][1] = -vel[i][1];
+    E[i][1] = -E[i][1];
   }
 }
 
@@ -99,6 +102,7 @@ void path::reflectZ()
   for ( uint i = 0; i < pos.size(); i++ ) {
     pos[i][2] = -pos[i][2];
     vel[i][2] = -vel[i][2];
+    E[i][2] = -E[i][2];
   }
 }
 
@@ -123,7 +127,10 @@ void path::print_to_file(std::string filename)
 	    << pos[i][2] << ','
 	    << vel[i][0] << ','
 	    << vel[i][1] << ','
-	    << vel[i][2] << '\n';      
+	    << vel[i][2] << ','      
+	    << E[i][0] << ','
+	    << E[i][1] << ','
+	    << E[i][2] << '\n';      
   }
   outFile.close();
 }

@@ -10,6 +10,8 @@
 #include "physics.h"
 
 /* void drift_and_save(double, field*, boundary); */
+void handleOpts(int, const char **);
+void saySettings();
 void drift_and_save(double, field <double>*, boundary, path*);
 
 #endif
