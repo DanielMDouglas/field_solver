@@ -9,7 +9,7 @@
 #include "argParser.h"
 
 std::string fieldFileName = "none";
-std::string geom = "bulkPix";
+std::string geom = "geometries/bulkPix.json";
 
 void handleOpts(int argc, const char ** argv)
 {

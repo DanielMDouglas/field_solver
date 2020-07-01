@@ -12,7 +12,8 @@
 	"zmin": 0,
 	"zmax": 1
     },
-    "volumes": [{"type": "conductor",
+    "volumes": [{"description": "bottom plate",
+		 "type": "conductor",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,
@@ -23,7 +24,8 @@
 			     "args": [0]
 			    }
 		},
-		{"type": "conductor",
+		{"description": "top plate",
+		 "type": "conductor",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,
@@ -34,7 +36,8 @@
 			     "args": [1]
 			    }
 		},
-		{"type": "dielectric",
+		{"description": "bulk volume",
+		 "type": "dielectric",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,

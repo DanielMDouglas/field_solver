@@ -29,9 +29,9 @@ void argParser::parse(int argc, const char ** argv)
 	thisOption.second(& argValue);
       }
     }
-    for ( std::pair <std::string, fn_t> thisOption : options ) {
-      if ( optValue.str() == thisOption.first ) {
-	thisOption.second(& argValue);
+    for ( std::pair <std::string, fn_t> thisFlag : flags ) {
+      if ( optValue.str() == thisFlag.first ) {
+	thisFlag.second(& argValue);
 	opt--;
       }
     }

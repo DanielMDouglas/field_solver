@@ -62,12 +62,6 @@ add_executable( edep ${PROJECT_SOURCE_DIR}/src/edep.cxx ${sources} ${headers})
 add_executable( efield ${PROJECT_SOURCE_DIR}/src/efield.cxx ${sources} ${headers})
 add_executable( induction ${PROJECT_SOURCE_DIR}/src/induction.cxx ${sources} ${headers})
 
-# target_link_libraries( solver ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-# target_link_libraries( drift ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-# target_link_libraries( edep ${Geant4_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-
 target_link_libraries( solver ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( drift ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( edep ${CMAKE_THREAD_LIBS_INIT} )
@@ -90,10 +84,8 @@ if(OPENMP_FOUND)
   target_link_libraries(induction ${OpenMP_CXX_FLAGS})
 endif()
 
-# install(TARGETS solver DESTINATION bin)
-# install(TARGETS drift DESTINATION bin)
-
 install(DIRECTORY "utils"
-  DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+  USE_SOURCE_PERMISSIONS)
 install(DIRECTORY geometries
   DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
