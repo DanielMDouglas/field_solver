@@ -37,9 +37,9 @@ class solver
   field <double> * sigVal;
   field <bool> * is_in_volume;
   field <bool> * is_dirichlet;
-  field <bool> * is_von_neumann;
+  field <bool> * is_neumann;
   field <bool> * is_boundary;
-  field <double> * von_neumann_dV;
+  field <double> * neumann_dV;
   field <double> * Q;
   field <double> * dQdt;
   field <double> * E;

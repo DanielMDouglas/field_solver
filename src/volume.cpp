@@ -44,7 +44,7 @@ volume::volume(nlohmann::json volume_json)
 		     volume_json["voltage"]["args"][5]);
     }
   }
-  else if ( type == "von Neumann" ) {
+  else if ( type == "neumann" ) {
     V = constant(0xdeadbeef);
     Efield = volume_json["Efield"];
     er = constant(1);

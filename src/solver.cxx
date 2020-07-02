@@ -321,14 +321,14 @@ void solver::initialize_geometry_fields()
 									      std::placeholders::_3));
   is_dirichlet = new field <bool> (x_axis, y_axis, z_axis, is_dirichlet_func);
 
-  // is this point inside of a von neumann BC?
-  std::function <bool (double, double, double)> is_vn_func;
-  is_vn_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_VN,
-								       bound,
-								       std::placeholders::_1,
-								       std::placeholders::_2,
-								       std::placeholders::_3));
-  is_von_neumann = new field <bool> (x_axis, y_axis, z_axis, is_vn_func);
+  // is this point inside of a neumann BC?
+  std::function <bool (double, double, double)> is_neumann_func;
+  is_neumann_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_neumann,
+									    bound,
+									    std::placeholders::_1,
+									    std::placeholders::_2,
+									    std::placeholders::_3));
+  is_neumann = new field <bool> (x_axis, y_axis, z_axis, is_neumann_func);
 
   is_boundary = new field <bool> (x_axis, y_axis, z_axis, false);
   for ( int i = 0; i < nPointsX; i++ ) {
@@ -336,7 +336,7 @@ void solver::initialize_geometry_fields()
       for ( int k = 0; k < nPointsZ; k++ ) {
 	is_boundary -> set(i, j, k,
 			   ( is_dirichlet -> get(i, j, k) )
-			   or ( is_von_neumann -> get(i, j, k) ));
+			   or ( is_neumann -> get(i, j, k) ));
       }
     }
   }
@@ -347,11 +347,11 @@ void solver::initialize_geometry_fields()
 									std::placeholders::_1,
 									std::placeholders::_2,
 									std::placeholders::_3));
-  von_neumann_dV = new field <double> (x_axis, y_axis, z_axis, vn_E_func);
+  neumann_dV = new field <double> (x_axis, y_axis, z_axis, vn_E_func);
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
-	von_neumann_dV -> set(i, j, k, (von_neumann_dV -> get(i, j, k))*spacing);
+	neumann_dV -> set(i, j, k, (neumann_dV -> get(i, j, k))*spacing);
       }
     }
   }
@@ -516,7 +516,7 @@ void solver::accum_charge()
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
-	if ( not ( is_dirichlet -> get(i, j, k) or is_von_neumann -> get(i, j, k) ) ) {
+	if ( not ( is_dirichlet -> get(i, j, k) or is_neumann -> get(i, j, k) ) ) {
 	  double sum = 0;
 
 	  sum += b1 -> get(i, j, k)*potential -> get(wrap(i, bound -> periodicX, nPointsX),
@@ -595,64 +595,64 @@ void solver::solve_charge()
 
 void solver::set_VN()
 {
-  // set the value of the potential where it is von Neumann
+  // set the value of the potential where it is Neumann
   for ( int i = 0; i < nPointsX; i++ ) {
     for ( int j = 0; j < nPointsY; j++ ) {
       for ( int k = 0; k < nPointsZ; k++ ) {
 	if ( not is_boundary -> get(i, j, k) ) {
-	  if ( is_von_neumann -> get(wrap(i+1, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i+1, bound -> periodicX, nPointsX),
+				 wrap(j, bound -> periodicY, nPointsY),
+				 wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i+1, j, k,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i+1, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i+1, bound -> periodicX, nPointsX),
+						 wrap(j, bound -> periodicY, nPointsY),
+						 wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(wrap(i-1, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i-1, bound -> periodicX, nPointsX),
+				 wrap(j, bound -> periodicY, nPointsY),
+				 wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i-1, j, k,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i-1, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i-1, bound -> periodicX, nPointsX),
+						 wrap(j, bound -> periodicY, nPointsY),
+						 wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j+1, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				 wrap(j+1, bound -> periodicY, nPointsY),
+				 wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j+1, k,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j+1, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						 wrap(j+1, bound -> periodicY, nPointsY),
+						 wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j-1, bound -> periodicY, nPointsY),
-				     wrap(k, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				 wrap(j-1, bound -> periodicY, nPointsY),
+				 wrap(k, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j-1, k,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j-1, bound -> periodicY, nPointsY),
-						     wrap(k, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						 wrap(j-1, bound -> periodicY, nPointsY),
+						 wrap(k, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k+1, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				 wrap(j, bound -> periodicY, nPointsY),
+				 wrap(k+1, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j, k+1,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k+1, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						 wrap(j, bound -> periodicY, nPointsY),
+						 wrap(k+1, bound -> periodicZ, nPointsZ)));
 	  }
-	  if ( is_von_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
-				     wrap(j, bound -> periodicY, nPointsY),
-				     wrap(k-1, bound -> periodicZ, nPointsZ)) ) {
+	  if ( is_neumann -> get(wrap(i, bound -> periodicX, nPointsX),
+				 wrap(j, bound -> periodicY, nPointsY),
+				 wrap(k-1, bound -> periodicZ, nPointsZ)) ) {
 	    potential -> set(i, j, k-1,
 			     potential -> get(i, j, k)
-			     - von_neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
-						     wrap(j, bound -> periodicY, nPointsY),
-						     wrap(k-1, bound -> periodicZ, nPointsZ)));
+			     - neumann_dV -> get(wrap(i, bound -> periodicX, nPointsX),
+						 wrap(j, bound -> periodicY, nPointsY),
+						 wrap(k-1, bound -> periodicZ, nPointsZ)));
 	  }
 	}
       }
@@ -669,58 +669,58 @@ void solver::fill_empty_VN()
       for ( int j = 0; j < potential -> ySize; j++ ) {
 	for ( int k = 0; k < potential -> zSize; k++ ) {
 	  if ( potential -> get(i, j, k) == 0xdeadbeef ) {
-	    // this is a piece of von neumann boundary that never
+	    // this is a piece of neumann boundary that never
 	    // got set, since it doesn't neighbor any non-boundary
 	    // voxels
 	    double neighborSum = 0;
 	    int nNeighbors = 0;
 	    if ( i != (potential -> xSize - 1) ) {
-	      if ( ( is_von_neumann -> get(i+1, j, k) )
+	      if ( ( is_neumann -> get(i+1, j, k) )
 		   and ( potential -> get(i+1, j, k) != 0xdeadbeef ) ) {
 		neighborSum += potential -> get(i+1, j, k);
 		nNeighbors++;
 	      }
 	    }
 	    if ( i != 0 ) {
-	      if ( ( is_von_neumann -> get(i-1, j, k) )
+	      if ( ( is_neumann -> get(i-1, j, k) )
 		   and ( potential -> get(i-1, j, k) != 0xdeadbeef ) ) {
 		neighborSum += potential -> get(i-1, j, k);
 		nNeighbors++;
 	      }
 	    }
 	    if ( j != (potential -> ySize - 1) ) {
-	      if ( ( is_von_neumann -> get(i, j+1, k) )
+	      if ( ( is_neumann -> get(i, j+1, k) )
 		   and ( potential -> get(i, j+1, k) != 0xdeadbeef )) {
 		neighborSum += potential -> get(i, j+1, k);
 		nNeighbors++;
 	      }
 	    }
 	    if ( j != 0 ) {
-	      if ( ( is_von_neumann -> get(i, j-1, k) )
+	      if ( ( is_neumann -> get(i, j-1, k) )
 		   and ( potential -> get(i, j-1, k) != 0xdeadbeef )) {
 		neighborSum += potential -> get(i, j-1, k);
 		nNeighbors++;
 	      }
 	    }
 	    if ( k != (potential -> zSize - 1) ) {
-	      if ( ( is_von_neumann -> get(i, j, k+1) )
+	      if ( ( is_neumann -> get(i, j, k+1) )
 		   and ( potential -> get(i, j, k+1) != 0xdeadbeef )) {
 		neighborSum += potential -> get(i, j, k+1);
 		nNeighbors++;
 	      }
 	    }
 	    if ( k != 0 ) {
-	      if ( ( is_von_neumann -> get(i, j, k-1) )
+	      if ( ( is_neumann -> get(i, j, k-1) )
 		   and ( potential -> get(i, j, k-1) != 0xdeadbeef )) {
 		neighborSum += potential -> get(i, j, k-1);
 		nNeighbors++;
 	      }
 	    }
 	    if ( nNeighbors ) {
-	      von_neumann_dV -> set(i, j, k, neighborSum/nNeighbors);
+	      neumann_dV -> set(i, j, k, neighborSum/nNeighbors);
 	    }
 	    else {
-	      von_neumann_dV -> set(i, j, k, 0xdeadbeef);
+	      neumann_dV -> set(i, j, k, 0xdeadbeef);
 	    }
 	  }
 	}
@@ -730,7 +730,7 @@ void solver::fill_empty_VN()
       for ( int j = 0; j < potential -> ySize; j++ ) {
 	for ( int k = 0; k < potential -> zSize; k++ ) {
 	  if ( potential -> get(i, j, k) == 0xdeadbeef ) {
-	    potential -> set(i, j, k, von_neumann_dV -> get(i, j, k));
+	    potential -> set(i, j, k, neumann_dV -> get(i, j, k));
 	  }
 	}
       }
@@ -830,8 +830,8 @@ int main(int argc, const char ** argv)
 
   thisSolver.sigVal -> print_to_file("cond_map.dat");
   thisSolver.is_dirichlet -> print_to_file("dirichlet_map.dat");
-  thisSolver.is_von_neumann -> print_to_file("VN_map.dat");
-  thisSolver.von_neumann_dV -> print_to_file("VNdV_map.dat");
+  thisSolver.is_neumann -> print_to_file("VN_map.dat");
+  thisSolver.neumann_dV -> print_to_file("VNdV_map.dat");
   thisSolver.epVal -> print_to_file("perm_map.dat");
   thisSolver.potential -> print_to_file("initial.dat");
   

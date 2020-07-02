@@ -44,7 +44,7 @@ class boundary
 
   // get boundary attributes in spatial coordinates
   bool is_in_conductor(double, double, double);
-  bool is_in_VN(double, double, double);
+  bool is_in_neumann(double, double, double);
   bool is_in_volume(double, double, double);
   double boundary_value(double, double, double);
   double Efield(double, double, double);
