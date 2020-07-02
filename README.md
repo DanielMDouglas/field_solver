@@ -185,26 +185,26 @@ functions (as of the writing of this README) can be `"constant"`, `"linear"`, or
 
 #### `"constant"`
 
-| Argument Number | Meaning |
-| --------------- | ------- |
-| 0               | value   |
+| Argument Position | Meaning |
+| ----------------- | ------- |
+| 0                 | value   |
 
 #### `"linear"`
 
-| Argument Number | Meaning   |
-| --------------- | --------- |
-| 0               | intercept |
-| 1               | x slope   |
-| 2               | y slope   |
-| 3               | z slope   |
+| Argument Position | Meaning   |
+| ----------------- | --------- |
+| 0                 | intercept |
+| 1                 | x slope   |
+| 2                 | y slope   |
+| 3                 | z slope   |
 
 #### `"gaussian"`
 
-| Argument Number | Meaning    |
-| --------------- | ---------- |
-| 0               | x center   |
-| 1               | y center   |
-| 2               | z center   |
-| 3               | width      |
-| 4               | baseline   |
-| 5               | magnitude  |
+| Argument Position | Meaning    |
+| ----------------- | ---------- |
+| 0                 | x center   |
+| 1                 | y center   |
+| 2                 | z center   |
+| 3                 | width      |
+| 4                 | baseline   |
+| 5                 | magnitude  |
