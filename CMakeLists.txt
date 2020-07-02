@@ -62,6 +62,7 @@ add_executable( drift_single ${PROJECT_SOURCE_DIR}/src/drift_single.cxx ${source
 add_executable( edep ${PROJECT_SOURCE_DIR}/src/edep.cxx ${sources} ${headers})
 add_executable( efield ${PROJECT_SOURCE_DIR}/src/efield.cxx ${sources} ${headers})
 add_executable( induction ${PROJECT_SOURCE_DIR}/src/induction.cxx ${sources} ${headers})
+add_executable( induction_single ${PROJECT_SOURCE_DIR}/src/induction_single.cxx ${sources} ${headers})
 
 target_link_libraries( solver ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( drift ${CMAKE_THREAD_LIBS_INIT} )
@@ -69,6 +70,7 @@ target_link_libraries( drift_single ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( edep ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( efield ${CMAKE_THREAD_LIBS_INIT} )
 target_link_libraries( induction ${CMAKE_THREAD_LIBS_INIT} )
+target_link_libraries( induction_single ${CMAKE_THREAD_LIBS_INIT} )
 
 if(ROOT_FOUND)
   target_link_libraries(solver ${ROOT_LIBRARIES})
@@ -77,6 +79,7 @@ if(ROOT_FOUND)
   target_link_libraries(edep ${ROOT_LIBRARIES})
   target_link_libraries(efield ${ROOT_LIBRARIES})
   target_link_libraries(induction ${ROOT_LIBRARIES})
+  target_link_libraries(induction_single ${ROOT_LIBRARIES})
 endif()
 
 if(OPENMP_FOUND)
@@ -86,6 +89,7 @@ if(OPENMP_FOUND)
   target_link_libraries(edep ${OpenMP_CXX_FLAGS})
   target_link_libraries(efield ${OpenMP_CXX_FLAGS})
   target_link_libraries(induction ${OpenMP_CXX_FLAGS})
+  target_link_libraries(induction_single ${OpenMP_CXX_FLAGS})
 endif()
 
 install(DIRECTORY "utils"

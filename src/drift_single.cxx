@@ -51,12 +51,14 @@ void saySettings()
 void sayUsage(arg_t ss)
 {
   std::cout << "Usage: ./drift_single [OPTIONS]" << std::endl
-	    << "-x" << '\t' << "Initial x position, default 0" << std::endl
-	    << "-y" << '\t' << "Initial y position, default 0" << std::endl
-	    << "-z" << '\t' << "Initial z position, default 0.45" << std::endl
+	    << "-x" << '\t' << "Initial x position, default: 0" << std::endl
+	    << "-y" << '\t' << "Initial y position, default: 0" << std::endl
+	    << "-z" << '\t' << "Initial z position, default: 0.45" << std::endl
 	    << "-o" << '\t' << "output, default: drift.dat" << std::endl
 	    << "-f" << '\t' << "electric potential field, default: none" << std::endl
-	    << "-g" << '\t' << "detector geometry, default: geometries/bulkPix.json" << std::endl;
+	    << "-g" << '\t' << "detector geometry, default: geometries/bulkPix.json" << std::endl
+	    << "-h" << '\t' << "display this help and exit" << std::endl;
+
 }  
 
 int main(int argc, const char ** argv)
@@ -72,9 +74,7 @@ int main(int argc, const char ** argv)
 	     detector,
 	     thisTraj);
 
-  std::ostringstream stringStream;
-  stringStream << "drift_from_" << xi << ".dat";
-  thisTraj -> print_to_file(stringStream.str());
+  thisTraj -> print_to_file(outFileName);
   
   return 0;
 }

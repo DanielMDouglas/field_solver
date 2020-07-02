@@ -8,13 +8,12 @@
 #include "induction.h"
 #include "physics.h"
 #include "pad.h"
-#include "argParser.h"
 
 std::string potFileName = "none";
 std::string weightFileName = "none";
 std::string geom = "geometries/bulkPix.json";
 
-std::string outFileName = "event.dat";
+std::string outFileName = "current.dat";
 
 void handleOpts(int argc, const char ** argv)
 {
@@ -24,6 +23,8 @@ void handleOpts(int argc, const char ** argv)
   parser.add_option("-w", [](arg_t ss) {*ss >> weightFileName;});
   parser.add_option("-g", [](arg_t ss) {*ss >> geom;});
   parser.add_option("-o", [](arg_t ss) {*ss >> outFileName;});
+
+  parser.add_flag("-h", [](arg_t ss) {sayUsage(ss);});
     
   parser.parse(argc, argv);
 
@@ -41,12 +42,24 @@ void handleOpts(int argc, const char ** argv)
 
 void saySettings()
 {
-  std::cout << "Using arguments: \n"
-	    << "potential field:     " << potFileName << '\n'
-	    << "weighting field:     " << weightFileName << '\n'
-	    << "geometry:            " << geom << '\n'
-	    << "output:              " << outFileName << '\n'
+  std::cout << "#####################################" << '\n'
+	    << "# Using arguments: \n"
+	    << "# potential field:     " << potFileName << '\n'
+	    << "# weighting field:     " << weightFileName << '\n'
+	    << "# geometry:            " << geom << '\n'
+	    << "# output:              " << outFileName << '\n'
+	    << "#####################################" << '\n'
 	    << std::endl;
+}
+
+void sayUsage(arg_t ss)
+{
+  std::cout << "Usage: ./induction [OPTIONS]" << std::endl
+	    << "-p" << '\t' << "potential field, default: none" << std::endl
+	    << "-w" << '\t' << "weighting field, default: none" << std::endl
+	    << "-g" << '\t' << "detector geometry, default: none" << std::endl
+	    << "-o" << '\t' << "output, default: none" << std::endl
+	    << "-h" << '\t' << "display this help and exit" << std::endl;
 }
 
 int main(int argc, const char ** argv)
