@@ -7,7 +7,7 @@
 #include <thread>
 
 // #ifdef _OPENMP
-#include <omp.h>
+// #include <omp.h>
 // #endif
 
 #include "solver.h"
@@ -740,14 +740,14 @@ void solver::fill_empty_VN()
 
 void solver::relax(int nThreads = 2)
 {
-  omp_set_dynamic(0);
-  omp_set_num_threads(4);
+  // omp_set_dynamic(0);
+  // omp_set_num_threads(4);
 
-  #pragma omp parallel
-  {
+  // #pragma omp parallel
+  // {
 
     // std::cout << "# threads: " << omp_get_num_threads() << std::endl;
-    #pragma omp for
+    // #pragma omp for
     for ( int i = 0; i < potential -> xSize; i++ ) {
       // std::cout << omp_get_num_threads() << '\t'
       // 		<< omp_get_thread_num() << '\t'
@@ -783,7 +783,7 @@ void solver::relax(int nThreads = 2)
 	}
       }
     }
-  }
+  // }
 }
 
 int solver::report(int iter)
