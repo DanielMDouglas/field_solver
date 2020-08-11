@@ -12,7 +12,7 @@
 	"zmin": 0,
 	"zmax": 1
     },
-    "volumes": [{"type": "von Neumann",
+    "volumes": [{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,
@@ -32,7 +32,7 @@
 			     "args": [-1]
 			    }
 		},
-		{"type": "von Neumann",
+		{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,
@@ -41,7 +41,7 @@
 		 "zmax": 1,
 		 "Efield": 0
 		},
-		{"type": "von Neumann",
+		{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0.99,
@@ -50,7 +50,7 @@
 		 "zmax": 1,
 		 "Efield": 0
 		},
-		{"type": "von Neumann",
+		{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 0.01,
 		 "ymin": 0,
@@ -59,7 +59,7 @@
 		 "zmax": 1,
 		 "Efield": 0
 		},
-		{"type": "von Neumann",
+		{"type": "neumann",
 		 "xmin": 0.99,
 		 "xmax": 1,
 		 "ymin": 0,

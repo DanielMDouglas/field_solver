@@ -12,7 +12,7 @@
 	"zmin": 0,
 	"zmax": 1
     },
-    "volumes": [{"type": "von Neumann",
+    "volumes": [{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,

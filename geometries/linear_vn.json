@@ -23,7 +23,7 @@
 			     "args": [0]
 			    }
 		},
-		{"type": "von Neumann",
+		{"type": "neumann",
 		 "xmin": 0,
 		 "xmax": 1,
 		 "ymin": 0,

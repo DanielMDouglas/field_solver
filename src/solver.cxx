@@ -134,7 +134,7 @@ solver::solver(boundary * b, int N, double initSpacing)
   // does not work yet!
   // double t = cos(pi/nPointsX) + cos(pi/nPointsY) + cos(pi/nPointsZ);
   // double w = (8 - sqrt(64 - 16*t*t))/(t*t);
-  
+   
   initialize_axes();
 
   initialize_geometry_fields();
@@ -291,7 +291,7 @@ void solver::initialize_geometry_fields()
 			      y_axis_staggered,
 			      z_axis_staggered,
 			      epVal_func);
-
+  
   std::function <double (double, double, double)> sigVal_func;
   sigVal_func = std::function<double (double, double, double)> (std::bind(&boundary::conductivity,
 									  bound,
@@ -302,7 +302,7 @@ void solver::initialize_geometry_fields()
 			       y_axis_staggered,
 			       z_axis_staggered,
 			       sigVal_func);
-
+  
   // is this point inside of the volume?
   std::function <bool (double, double, double)> is_in_vol_func;
   is_in_vol_func = std::function<bool (double, double, double)> (std::bind(&boundary::is_in_volume,

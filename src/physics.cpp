@@ -191,8 +191,18 @@ std::vector <double> ramo_induction(double q, path * driftPath, field <double> *
 {
 
   std::vector <double> pSeries;
+
+  // initial position amounts to charge being "placed"
+  // initial current is therefore a delta function
+  // whose integral is the weighting potential 
+  std::vector <double> pos = driftPath -> pos[0];
+  double initWeight = weight -> interpolate(pos);
   
-  for ( int i = 1; i < driftPath -> pos.size(); i++ ) {
+  double induced_current = -q*initWeight/dt; // C / us
+
+  pSeries.push_back(induced_current);
+    
+  for ( int i = 0; i < driftPath -> pos.size(); i++ ) {
     std::vector <double> pos = driftPath -> pos[i];
     std::vector <double> vel = driftPath -> vel[i];
     std::vector <double> eField = E(pos, weight);

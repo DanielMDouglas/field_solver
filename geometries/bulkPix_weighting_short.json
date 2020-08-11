@@ -177,7 +177,7 @@
         {
             "Efield": 0.0,
             "description": "to main volume",
-            "type": "von Neumann",
+            "type": "neumann",
             "xmax": 1.4200000000000002,
             "xmin": -0.02,
             "ymax": 1.4200000000000002,
@@ -188,7 +188,7 @@
         {
             "Efield": 0,
             "description": "x symmetry",
-            "type": "von Neumann",
+            "type": "neumann",
             "xmax": 0.0,
             "xmin": -0.02,
             "ymax": 1.4200000000000002,
@@ -199,7 +199,7 @@
         {
             "Efield": 0,
             "description": "y symmetry",
-            "type": "von Neumann",
+            "type": "neumann",
             "xmax": 1.4200000000000002,
             "xmin": -0.02,
             "ymax": 0.0,
@@ -210,7 +210,7 @@
         {
             "Efield": 0,
             "description": "x symmetry",
-            "type": "von Neumann",
+            "type": "neumann",
             "xmax": 1.4200000000000002,
             "xmin": 1.4000000000000001,
             "ymax": 1.4200000000000002,
@@ -221,7 +221,7 @@
         {
             "Efield": 0,
             "description": "y symmetry",
-            "type": "von Neumann",
+            "type": "neumann",
             "xmax": 1.4200000000000002,
             "xmin": -0.02,
             "ymax": 1.4200000000000002,

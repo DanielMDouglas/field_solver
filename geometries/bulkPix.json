@@ -79,7 +79,7 @@
             "type": "conductor",
             "voltage": {
                 "args": [
-                    -0.02
+                    -0.1
                 ],
                 "function_name": "constant"
             },
