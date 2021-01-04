@@ -52,7 +52,7 @@ void saySettings()
 void sayUsage(arg_t ss)
 {
   std::cout << "Usage: ./induction_single [OPTIONS]" << std::endl
-	    << "-d" << '\t' << "potential field, default: none" << std::endl
+	    << "-d" << '\t' << "drift path, default: none" << std::endl
 	    << "-w" << '\t' << "weighting field, default: none" << std::endl
 	    << "-o" << '\t' << "output, default: current.dat" << std::endl
 	    << "-h" << '\t' << "display this help and exit" << std::endl;

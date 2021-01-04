@@ -64,6 +64,8 @@ void sayUsage(arg_t ss)
 int main(int argc, const char ** argv)
 {
   handleOpts(argc, argv);
+
+  std::cout << "v @ 500V/cm" << driftV({0.5, 0, 0}, Tb)[0] << std::endl;
   
   field <double> * potential = new field <double> (fieldFileName);
   boundary detector (geom);

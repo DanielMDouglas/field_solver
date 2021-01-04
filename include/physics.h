@@ -7,7 +7,7 @@
 #include "field.h"
 #include "path.h"
 
-const double dt = 5.e-4; // us
+const double dt = 5.e-5; // us
 const double Tb = 87.302; // boiling temperature of LAr
 const double e = 1.603e-19; // C
 const double ep0 = 8.85e-11; // C/(kV*cm)

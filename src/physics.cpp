@@ -144,6 +144,18 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
   std::cout << "Initial pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
   
   while ( true ) {
+    // move forward one step
+    // assume T = boiling point of Ar for now
+    std::vector <double> Efield = E(pos, V);
+    std::vector <double> vel = driftV(Efield, Tb);
+      
+    trajectory -> pos.push_back(pos);
+    trajectory -> vel.push_back(vel);
+    trajectory -> E.push_back(Efield);
+       
+    pos = pos + vel*dt;
+    t += dt;
+    
     // check OOB
     if ( (pos[0] < b.Xmin) or (pos[0] > b.Xmax) or
 	 (pos[1] < b.Ymin) or (pos[1] > b.Ymax) or
@@ -164,21 +176,15 @@ void drift_path(std::vector <double> init_pos, field <double> * V, boundary b, p
       trajectory -> fate = "conductor";
       break;
     }
-    // move forward one step
-    else {
-      // assume T = boiling point of Ar for now
-      std::vector <double> Efield = E(pos, V);
-      std::vector <double> vel = driftV(Efield, Tb);
-      
-      trajectory -> pos.push_back(pos);
-      trajectory -> vel.push_back(vel);
-      trajectory -> E.push_back(Efield);
-       
-      pos = pos + vel*dt;
-      t += dt;
-    }
   }
   
+  std::vector <double> Efield = E(pos, V);
+  std::vector <double> vel = driftV(Efield, Tb);
+      
+  trajectory -> pos.push_back(pos);
+  trajectory -> vel.push_back(vel);
+  trajectory -> E.push_back(Efield);
+
   trajectory -> arrivalTime = t;
 
   std::cout << "Final pos: " << "(" << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << std::endl;
@@ -199,9 +205,10 @@ std::vector <double> ramo_induction(double q, path * driftPath, field <double> *
   double initWeight = weight -> interpolate(pos);
   
   double induced_current = -q*initWeight/dt; // C / us
-
+  
   pSeries.push_back(induced_current);
-    
+  // std::cout << induced_current << std::endl;
+  
   for ( int i = 0; i < driftPath -> pos.size(); i++ ) {
     std::vector <double> pos = driftPath -> pos[i];
     std::vector <double> vel = driftPath -> vel[i];
@@ -213,7 +220,51 @@ std::vector <double> ramo_induction(double q, path * driftPath, field <double> *
     
     // std::cout << i*driftPath -> dt << '\t' << induced_current*1.e15 << std::endl;
   }
+  pSeries.push_back(0);
 
+  // for ( int i = 1; i < driftPath -> pos.size(); i++ ) {
+  //   std::vector <double> prevPos = driftPath -> pos[i-1];
+  //   std::vector <double> thisPos = driftPath -> pos[i];
+  //   // std::vector <double> vel = driftPath -> vel[i];
+  //   // std::vector <double> eField = E(pos, weight);
+
+  //   double induced_current = q*(weight->interpolate(prevPos) - weight->interpolate(thisPos))/dt;
+  //   std::cout << induced_current << std::endl;
+
+  //   // double induced_current = q*dot(vel, eField); // C / us
+
+  //   // std::cout << thisPos[0] << '\t' << thisPos[1] << '\t' << thisPos[2] << '\t' << weight->interpolate(thisPos) << std::endl;
+
+  //   pSeries.push_back(induced_current);
+    
+  //   // std::cout << i*driftPath -> dt << '\t' << induced_current*1.e15 << std::endl;
+  // }
+
+  // double sum = 0;
+  // for (double i: pSeries){
+  //   sum += i;
+  // }
+  // std::cout << sum*dt << std::endl;
+  // // did the charge land on an electrode with weight 0 or 1?
+  // std::vector <double> thisPos = driftPath -> pos[driftPath->pos.size() - 1];
+  // if ( round(weight->interpolate(thisPos)) == 1) {
+  //   // double induced_current = q*(weight->interpolate(thisPos) - 1)/dt;
+  //   double induced_current = (e - sum*dt)/dt;
+  //   std::cout << induced_current << std::endl;
+
+  //   pSeries.push_back(induced_current);
+  // }
+  // else {
+  //   double induced_current = q*(weight->interpolate(thisPos))/dt;
+  //   pSeries.push_back(induced_current);
+  // }
+
+  double sum = 0;
+  for (double i: pSeries){
+    sum += i;
+  }
+  std::cout << sum*dt << std::endl;  
+ 
   return pSeries;
 }
 

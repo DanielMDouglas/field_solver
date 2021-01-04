@@ -250,9 +250,13 @@ field<T> * field<T>::upscale(int scaleFactor)
   int newYSize = scaleFactor*(ySize - 1) + 1;
   int newZSize = scaleFactor*(zSize - 1) + 1;
 
-  field<T> * newField = new field<T> (linspace(xMin, xMax, newXSize),
-				      linspace(yMin, yMax, newYSize),
-				      linspace(zMin, zMax, newZSize),
+  std::vector <T> newXSpace = linspace(xMin, xMax, newXSize);
+  std::vector <T> newYSpace = linspace(yMin, yMax, newYSize);
+  std::vector <T> newZSpace = linspace(zMin, zMax, newZSize);
+  
+  field<T> * newField = new field<T> (newXSpace,
+				      newYSpace,
+				      newZSpace,
 				      0);
 
   int sub_i_endpoint;
@@ -283,10 +287,16 @@ field<T> * field<T>::upscale(int scaleFactor)
 	      sub_k_endpoint = scaleFactor;
 	    }
 	    for ( int sub_k = 0; sub_k < sub_k_endpoint; sub_k++ ) {
+	      // newField -> set(scaleFactor*i + sub_i,
+	      // 		      scaleFactor*j + sub_j,
+	      // 		      scaleFactor*k + sub_k,
+	      // 		      get(i, j, k));
 	      newField -> set(scaleFactor*i + sub_i,
 			      scaleFactor*j + sub_j,
 			      scaleFactor*k + sub_k,
-			      get(i, j, k));
+			      interpolate({newXSpace[scaleFactor*i + sub_i],
+					   newYSpace[scaleFactor*j + sub_j],
+					   newZSpace[scaleFactor*k + sub_k]}));
 	    }
 	  }
 	}
@@ -319,7 +329,7 @@ T field<T>::interpolate(std::vector <double> pos)
   int yLowInd = i-1;
   int yHighInd = i;
 
-  spacing[1] = x_space[yHighInd] - x_space[yLowInd];
+  spacing[1] = y_space[yHighInd] - y_space[yLowInd];
   
   i = 0;
   while ( z_space[i] < pos[2] ) {
@@ -328,7 +338,7 @@ T field<T>::interpolate(std::vector <double> pos)
   int zLowInd = i-1;
   int zHighInd = i;
 
-  spacing[2] = x_space[zHighInd] - x_space[zLowInd];
+  spacing[2] = z_space[zHighInd] - z_space[zLowInd];
   
   // linear interpolation
   T sum = 0;
@@ -352,6 +362,173 @@ T field<T>::interpolate(std::vector <double> pos)
 
   return sum;
 }
+
+// double L(double x)
+// {
+//   double pi = 4*atan(1);
+//   double a = 1;
+//   if ( x == 0 ) {
+//     return 1;
+//   }
+//   else if ( -a < x && x < a ) {
+//     return a*sin(pi*x)*sin(pi*x/a)/(pi*pi*x*x);
+//   }
+//   else {
+//     return 0;
+//   }
+// }
+
+// template <typename T>
+// T field<T>::interpolate(std::vector <double> pos)
+// {
+//   std::vector <double> spacing = {0, 0, 0};
+  
+//   // get the 8 nearest points on the grid
+//   int i = 0;
+//   while ( x_space[i] < pos[0] ) {
+//     i++;
+//   }
+//   int xLowInd = i-1;
+//   int xHighInd = i;
+
+//   spacing[0] = x_space[xHighInd] - x_space[xLowInd];
+  
+//   i = 0;
+//   while ( y_space[i] < pos[1] ) {
+//     i++;
+//   }
+//   int yLowInd = i-1;
+//   int yHighInd = i;
+
+//   spacing[1] = y_space[yHighInd] - y_space[yLowInd];
+  
+//   i = 0;
+//   while ( z_space[i] < pos[2] ) {
+//     i++;
+//   }
+//   int zLowInd = i-1;
+//   int zHighInd = i;
+
+//   spacing[2] = z_space[zHighInd] - z_space[zLowInd];
+  
+//   // linear interpolation
+//   T sum = 0;
+//   T prod;
+//   for ( int i: {xLowInd, xHighInd} ) {
+//     for ( int j: {yLowInd, yHighInd} ) {
+//       for ( int k: {zLowInd, zHighInd} ) {
+// 	std::vector <double> vertexPos = {x_space[i], y_space[j], z_space[k]};
+// 	prod = get(i, j, k);
+// 	for ( int n: {0, 1, 2} ) {
+// 	  prod *= spacing[n] - abs( pos[n] - vertexPos[n] );
+// 	}
+// 	sum += prod;
+//       }
+//     }
+//   }
+
+//   for ( int n: {0, 1, 2} ) {
+//     sum /= spacing[n];
+//   }
+
+//   return sum;
+// }
+
+// template <typename T>
+// std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
+// {
+//   std::vector <double> spacing = {0, 0, 0};
+
+//   std::vector <T> grad = {0, 0, 0};
+  
+//   // get the 8 nearest points on the grid
+//   int i = 0;
+//   while ( x_space[i] < pos[0] ) {
+//     i++;
+//   }
+//   int xLowInd = i-1;
+//   int xHighInd = i;
+
+//   spacing[0] = x_space[xHighInd] - x_space[xLowInd];
+  
+//   i = 0;
+//   while ( y_space[i] < pos[1] ) {
+//     i++;
+//   }
+//   int yLowInd = i-1;
+//   int yHighInd = i;
+
+//   spacing[1] = y_space[yHighInd] - y_space[yLowInd];
+  
+//   i = 0;
+//   while ( z_space[i] < pos[2] ) {
+//     i++;
+//   }
+//   int zLowInd = i-1;
+//   int zHighInd = i;
+
+//   spacing[2] = z_space[zHighInd] - z_space[zLowInd];
+  
+//   // x grad
+//   // interpolate in y and z
+//   T weight;
+//   T highProd;
+//   T lowProd;
+//   for ( int j: {yLowInd, yHighInd} ) {
+//     for ( int k: {zLowInd, zHighInd} ) {
+//       std::vector <double> vertexPos = {0, y_space[j], z_space[k]};
+//       highProd = get(xHighInd, j, k);
+//       lowProd = get(xLowInd, j, k);
+//       for ( int n: {1, 2} ) {
+// 	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+// 	highProd *= weight;
+// 	lowProd *= weight;
+//       }
+//       grad[0] += highProd;
+//       grad[0] -= lowProd;
+//     }
+//   }
+
+//   // y grad
+//   // interpolate in x and z
+//   for ( int i: {xLowInd, xHighInd} ) {
+//     for ( int k: {zLowInd, zHighInd} ) {
+//       std::vector <double> vertexPos = {x_space[i], 0, z_space[k]};
+//       highProd = get(i, yHighInd, k);
+//       lowProd = get(i, yLowInd, k);
+//       for ( int n: {0, 2} ) {
+// 	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+// 	highProd *= weight;
+// 	lowProd *= weight;
+//       }
+//       grad[1] += highProd;
+//       grad[1] -= lowProd;
+//     }
+//   }
+
+//   // z grad
+//   // interpolate in x and y
+//   for ( int i: {xLowInd, xHighInd} ) {
+//     for ( int j: {yLowInd, yHighInd} ) {
+//       std::vector <double> vertexPos = {x_space[i], y_space[j], 0};
+//       highProd = get(i, j, zHighInd);
+//       lowProd = get(i, j, zLowInd);
+//       for ( int n: {0, 1} ) {
+// 	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
+// 	highProd *= weight;
+// 	lowProd *= weight;
+//       }
+//       grad[2] += highProd;
+//       grad[2] -= lowProd;
+//     }
+//   }
+  
+//   for ( int n: {0, 1, 2} ) {
+//     grad = grad*(1./spacing[n]);
+//   }
+
+//   return grad;
+// }
 
 template <typename T>
 std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
@@ -387,64 +564,15 @@ std::vector <T> field<T>::interpolate_grad(std::vector <double> pos)
   int zHighInd = i;
 
   spacing[2] = z_space[zHighInd] - z_space[zLowInd];
-  
-  // x grad
-  // interpolate in y and z
-  T weight;
-  T highProd;
-  T lowProd;
-  for ( int j: {yLowInd, yHighInd} ) {
-    for ( int k: {zLowInd, zHighInd} ) {
-      std::vector <double> vertexPos = {0, y_space[j], z_space[k]};
-      highProd = get(xHighInd, j, k);
-      lowProd = get(xLowInd, j, k);
-      for ( int n: {1, 2} ) {
-	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
-	highProd *= weight;
-	lowProd *= weight;
-      }
-      grad[0] += highProd;
-      grad[0] -= lowProd;
-    }
-  }
 
-  // y grad
-  // interpolate in x and z
-  for ( int i: {xLowInd, xHighInd} ) {
-    for ( int k: {zLowInd, zHighInd} ) {
-      std::vector <double> vertexPos = {x_space[i], 0, z_space[k]};
-      highProd = get(i, yHighInd, k);
-      lowProd = get(i, yLowInd, k);
-      for ( int n: {0, 2} ) {
-	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
-	highProd *= weight;
-	lowProd *= weight;
-      }
-      grad[1] += highProd;
-      grad[1] -= lowProd;
-    }
-  }
+  std::vector <double> d = 0.5*spacing;
 
-  // z grad
-  // interpolate in x and y
-  for ( int i: {xLowInd, xHighInd} ) {
-    for ( int j: {yLowInd, yHighInd} ) {
-      std::vector <double> vertexPos = {x_space[i], y_space[j], 0};
-      highProd = get(i, j, zHighInd);
-      lowProd = get(i, j, zLowInd);
-      for ( int n: {0, 1} ) {
-	weight = spacing[n] - abs(pos[n] - vertexPos[n]);
-	highProd *= weight;
-	lowProd *= weight;
-      }
-      grad[2] += highProd;
-      grad[2] -= lowProd;
-    }
-  }
-  
+  grad[0] = (interpolate({pos[0] + d[0], pos[1], pos[2]}) - interpolate({pos[0] - d[0], pos[1], pos[2]}));
+  grad[1] = (interpolate({pos[0], pos[1] + d[1], pos[2]}) - interpolate({pos[0], pos[1] - d[1], pos[2]}));
+  grad[2] = (interpolate({pos[0], pos[1], pos[2] + d[2]}) - interpolate({pos[0], pos[1], pos[2] - d[2]}));
+
   for ( int n: {0, 1, 2} ) {
-    grad = grad*(1./spacing[n]);
+    grad[n] = grad[n]/(2*d[n]);
   }
-
   return grad;
 }

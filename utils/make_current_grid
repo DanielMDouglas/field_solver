@@ -1,0 +1,57 @@
+#!/usr/bin/python
+
+import numpy as np
+import os
+import sys
+# import shutil
+
+destDir = "currents/"
+
+def fmt(num):
+    return str(round(num, 3))
+
+binWidth = 0.02
+# for x0 in np.arange(0.1, 0.9, binWidth):
+    # print np.arange(0, x0+binWidth, binWidth)
+    # for y0 in np.arange(0.1, x0+binWidth, binWidth):
+for i in range(10):
+    for j in range(i+1):
+        x0 = i*binWidth + 0.01
+        y0 = j*binWidth + 0.01
+        z0 = 0.5
+        driftFileName = "drift_from_"+fmt(x0)+"_"+fmt(y0)+".dat"
+        drift_cmd = "./drift_single -x "+fmt(x0)+" -y "+fmt(y0)+" -z "+fmt(z0)+" -o "+driftFileName+" -f bulkPix_pot_0.005_longer.dat"
+        print drift_cmd
+        os.system(drift_cmd)
+
+        currentFileName = "current_from_"+fmt(x0)+"_"+fmt(y0)+".dat"
+        current_cmd = "./induction_single -d "+driftFileName+" -w bulkPix_wgt_0.005_longer.dat -o "+destDir+currentFileName
+
+        print current_cmd
+        os.system(current_cmd)
+
+        
+        # patchedFileName = "patched_current_from_"+fmt(x0)+"_"+fmt(y0)+".dat"
+        # patch_cmd = "./utils/patch_current " + currentFileName + " " + destDir+patchedFileName
+        # print patch_cmd
+        # os.system(patch_cmd)
+
+        if x0 == y0:
+            symmetryFileNames = [destDir+"current_from_"+fmt(-x0)+"_"+fmt(y0)+".dat",
+                                 destDir+"current_from_"+fmt(x0)+"_"+fmt(-y0)+".dat",
+                                 destDir+"current_from_"+fmt(-x0)+"_"+fmt(-y0)+".dat"]
+            
+        else:
+            symmetryFileNames = [destDir+"current_from_"+fmt(y0)+"_"+fmt(x0)+".dat",
+                                 destDir+"current_from_"+fmt(-x0)+"_"+fmt(y0)+".dat",
+                                 destDir+"current_from_"+fmt(y0)+"_"+fmt(-x0)+".dat",
+                                 destDir+"current_from_"+fmt(x0)+"_"+fmt(-y0)+".dat",
+                                 destDir+"current_from_"+fmt(-y0)+"_"+fmt(x0)+".dat",
+                                 destDir+"current_from_"+fmt(-x0)+"_"+fmt(-y0)+".dat",
+                                 destDir+"current_from_"+fmt(-y0)+"_"+fmt(-x0)+".dat"]
+
+        for symmetryFileName in symmetryFileNames:
+            print currentFileName, symmetryFileName
+            # shutil.copy(driftFileName, symmetryFileName)
+            # os.symlink(patchedFileName, symmetryFileName)
+            os.symlink(currentFileName, symmetryFileName)
